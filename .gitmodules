@@ -1,0 +1,3 @@
+[submodule "musicnn"]
+	path = musicnn
+	url = https://github.com/jordipons/musicnn.git
