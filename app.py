@@ -1,6 +1,6 @@
 from flask import Flask, render_template, logging
 
-from process import process
+from visualize import load_embeddings
 
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_pyfile('config.py')
@@ -15,6 +15,9 @@ def landing():
 def get_jamendo_stream_url(track_id):
     return f'https://mp3l.jamendo.com/?trackid={track_id}&format=mp31&from=app-{app.config["JAMENDO_CLIENT_ID"]}'
 
+
+def get_embeddings_pca(n_tracks=20):
+    embeddings_avg, embeddings_std, embeddings_all = load_embeddings(app.config['EMBEDDINGS_DIR'], n_tracks)
 
 
 if __name__ == '__main__':

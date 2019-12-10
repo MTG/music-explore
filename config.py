@@ -1,4 +1,6 @@
-AUDIO_DIR = '/mnt/data/jamendo-dataset/audio'
-EMBEDDINGS_DIR = '/mnt/data/jamendo-dataset/embeddings'
-TAGGRAMS_DIR = '/mnt/data/jamendo-dataset/taggrams'
+DATA_DIR = '/mnt/data/jamendo-dataset/'
+AUDIO_DIR = DATA_DIR + 'audio'
+EMBEDDINGS_DIR = DATA_DIR + 'embeddings'
+TAGGRAMS_DIR = DATA_DIR + 'taggrams'
+
 JAMENDO_CLIENT_ID = ''
