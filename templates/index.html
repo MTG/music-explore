@@ -15,11 +15,72 @@
         </nav>
 
         <div class="container">
-            <div id="plot" class="plot"></div>
+            <div class="row">
+                <form id="controls" class="col-2">
+                    <div class="form-group form-row">
+                        <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
+                            <label class="btn btn-info active">
+                                <input type="radio" name="embeddings-type" value="penultimate" checked>Penultimate
+                            </label>
+                            <label class="btn btn-info">
+                                <input type="radio" name="embeddings-type" value="taggrams">Taggrams
+                            </label>
+                        </div>
+                    </div>
 
-            <audio controls>
-                <source src="{{ url }}" type="audio/mpeg">
-            </audio>
+                    <div class="form-group form-row">
+                        <div class="input-group col-12">
+                            <div class="input-group-prepend">
+                                <label for="tracks-n" class="input-group-text">N</label>
+                            </div>
+                            <input type="text" class="form-control" id="n-tracks" value="10">
+                        </div>
+                    </div>
+
+                    <div class="form-group form-row">
+                        <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
+                            <label class="btn btn-secondary active">
+                                <input type="radio" name="projection-type" value="pca" checked>PCA
+                            </label>
+                            <label class="btn btn-secondary">
+                                <input type="radio" name="projection-type" value="tsne">T-SNE
+                            </label>
+                            <label class="btn btn-secondary">
+                                <input type="radio" name="projection-type" id="projection-custom" value="custom">Custom
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group form-row" id="projection-controls" hidden>
+                        <div class="col-12">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <label for="dim-x" class="input-group-text">X</label>
+                            </div>
+                            <input type="text" class="form-control" id="dim-x" value="0">
+                        </div>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <label for="dim-y" class="input-group-text">Y</label>
+                            </div>
+                            <input type="text" class="form-control" id="dim-y" value="1">
+                        </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row justify-content-center">
+                        <button id="btn-refresh" type="submit" class="btn btn-primary">Reload</button>
+                    </div>
+                </form>
+
+                <div id="plot" class="col-10 plot justify-content-center"></div>
+            </div>
+
+            <div class="row justify-content-center">
+                <audio id="audio" controls>
+                    <source id="audio-source" type="audio/mpeg">
+                </audio>
+            </div>
         </div>
 
         <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>

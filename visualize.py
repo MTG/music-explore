@@ -1,5 +1,4 @@
 from pathlib import Path
-import random
 
 import numpy as np
 from sklearn.decomposition import PCA
@@ -13,7 +12,7 @@ from config import EMBEDDINGS_DIR, TAGGRAMS_DIR
 TSNE_MAX_DIMS = 50
 EDGE_IGNORE = 0
 MATPLOTLIB_FIGSIZE = [12, 10]
-PYPLOT_MARKER_SCALE = 10
+PLOTLY_MARKER_SCALE = 10
 
 
 def load_embeddings(path: Path, n_tracks=None):
@@ -40,8 +39,13 @@ def reduce(embeddings, method='pca', dimensions=2):
         pca = PCA(n_components=dimensions)
         embeddings_reduced = pca.fit_transform(embeddings_stacked)
 
+    elif isinstance(method, tuple):
+        if not len(method) == 2:
+            raise ValueError("Method tuple should have length of 2")
+        embeddings_reduced = embeddings_stacked[:, method]
+
     else:
-        raise ValueError("Method should be either 'tsne' or 'pca'")
+        raise ValueError("Method should be 'tsne', 'pca' or a tuple of dimensions (e.g. (10, 11))")
 
     return np.split(embeddings_reduced, np.cumsum(lengths)[:-1])
 
@@ -67,17 +71,25 @@ def plot_trajectories_sns(embeddings_2d):
     plt.show()
 
 
-def get_trajectories_plotly(embeddings_2d):
+def get_trajectories_plotly(embeddings_2d, names):
     trajectories = get_trajectories(embeddings_2d)
     fig = go.Figure()
-    for x, y in trajectories:
-        fig.add_trace(go.Scatter(x=x, y=y, mode='lines', line_shape='spline'))
+    for (x, y), name in zip(trajectories, names):
+        fig.add_trace(go.Scatter(
+            x=x,
+            y=y,
+            mode='lines',
+            line_shape='spline',
+            name=name
+        ))
     return fig
 
 
 def get_averages(embeddings_2d):
     avg = np.array([item.mean(axis=0) for item in embeddings_2d])
     std = np.array([item.std(axis=0).mean() for item in embeddings_2d])
+    std = std / std.std()
+    print(f'Standard deviations = {std}')
     return avg, std
 
 
@@ -94,20 +106,17 @@ def get_averages_plotly(embeddings_2d, names):
         x=avg[:, 0],
         y=avg[:, 1],
         mode='markers',
-        marker=dict(size=std * PYPLOT_MARKER_SCALE),
+        marker=dict(size=std * PLOTLY_MARKER_SCALE),
         hovertext=names,
-        hoverinfo='text'
+        hoverinfo='text',
+        ids=names
     ))
     return fig
 
 
+# to be used from within flask
 def get_plotly_fig(source, plot_type, n_tracks, method):
-    if source == 'embeddings':
-        path = Path(EMBEDDINGS_DIR)
-    elif source == 'taggrams':
-        path = Path(TAGGRAMS_DIR)
-    else:
-        raise ValueError("data should be either 'embeddings' or 'taggrams'")
+    path = Path(source)
 
     embeddings, names = load_embeddings(path, n_tracks=n_tracks)
     embeddings_reduced = reduce(embeddings, method=method)
@@ -115,7 +124,7 @@ def get_plotly_fig(source, plot_type, n_tracks, method):
     if plot_type == 'averages':
         fig = get_averages_plotly(embeddings_reduced, names)
     elif plot_type == 'trajectories':
-        fig = get_trajectories_plotly(embeddings_reduced)
+        fig = get_trajectories_plotly(embeddings_reduced, names)
     else:
         raise ValueError("plot_type should be either 'averages' or 'trajectories'")
 
