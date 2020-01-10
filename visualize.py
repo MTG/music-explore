@@ -16,7 +16,10 @@ PLOTLY_MARKER_SCALE = 10
 
 
 def load_embeddings(path: Path, n_tracks=None):
+    print(path)
     embedding_files = sorted(path.glob('**/*.npy'))
+    if len(embedding_files) == 0:
+        raise ValueError("No data available, maybe path is wrong?")
     n_tracks = n_tracks or len(embedding_files)
     # TODO: replace with map?
     embeddings = [np.load(embedding_file) for embedding_file in embedding_files[:n_tracks]]
