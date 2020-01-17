@@ -21,3 +21,6 @@ cp config.py instance
 Download the embeddings for the data and point the config path to correct location.
 * Embeddings
 * Taggrams
+
+For serving audio from local server create a soft link `static/audio` pointing to audio folder and change the config 
+`SERVE_AUDIO_LOCALLY` to `True`

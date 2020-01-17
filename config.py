@@ -4,3 +4,4 @@ EMBEDDINGS_DIR = DATA_DIR + 'embeddings'
 TAGGRAMS_DIR = DATA_DIR + 'taggrams'
 
 JAMENDO_CLIENT_ID = ''
+SERVE_AUDIO_LOCALLY = False
