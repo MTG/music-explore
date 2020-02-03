@@ -3,7 +3,7 @@ import json
 from flask import Flask, render_template, logging, url_for
 import plotly
 
-from visualize import get_plotly_fig
+from visualize.web import get_plotly_fig
 
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_pyfile('config.py')
@@ -15,6 +15,9 @@ def landing():
 
 
 def jamendo_template(track_id):
+    token = app.config["JAMENDO_CLIENT_ID"]
+    if not token:
+        raise EnvironmentError('Jamendo client ID is not set')
     return f'https://mp3l.jamendo.com/?trackid={track_id}&format=mp31&from=app-{app.config["JAMENDO_CLIENT_ID"]}'
 
 
@@ -25,15 +28,15 @@ def localhost_template(track_id):
 @app.route('/jamendo/<string:track_id>')
 def get_jamendo_stream_url(track_id):
     is_segmented = ':' in track_id
+    url_suffix = ''
     if is_segmented:
         track_id, start, end = track_id.split(':')
+        url_suffix = f'#t={start},{end}'
 
     url = localhost_template(track_id) if app.config['SERVE_AUDIO_LOCALLY'] else jamendo_template(track_id)
 
-    if is_segmented:
-        url += f'#t={start},{end}'
     return {
-        'url': url
+        'url': url + url_suffix
     }
 
 

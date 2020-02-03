@@ -1,7 +1,13 @@
+# Flask
+ENV = 'development'
+DEBUG = True
+
+# Data
 DATA_DIR = '/path/to/data/jamendo-dataset/'
 AUDIO_DIR = DATA_DIR + 'audio'
 EMBEDDINGS_DIR = DATA_DIR + 'embeddings'
 TAGGRAMS_DIR = DATA_DIR + 'taggrams'
 
+# API
 JAMENDO_CLIENT_ID = ''
 SERVE_AUDIO_LOCALLY = False

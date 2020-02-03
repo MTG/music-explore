@@ -4,7 +4,7 @@ import logging
 from musicnn.extractor import extractor
 import numpy as np
 
-from config import AUDIO_DIR, EMBEDDINGS_DIR, TAGGRAMS_DIR
+from instance.config import AUDIO_DIR, EMBEDDINGS_DIR, TAGGRAMS_DIR
 
 logger = logging.getLogger(__file__)
 handler = logging.StreamHandler()
