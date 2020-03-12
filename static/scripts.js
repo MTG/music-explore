@@ -36,6 +36,7 @@ let loadPlot = function (animate) {
     if (projectionType === 'custom') {
         projectionType += '/' + $('#dim-x').val() + '/' + $('#dim-y').val();
     }
+
     let refreshButton = $('#btn-refresh');
     let refreshButtonSpinner = $('#btn-refresh-spinner');
 
@@ -55,6 +56,10 @@ let loadPlot = function (animate) {
             refreshButton.removeClass('disabled');
             refreshButtonSpinner.hide();
 
+            localStorage.setItem('dataType', dataType);
+            localStorage.setItem('embeddubgsType', embeddingsType);
+            localStorage.setItem('nTracks', nTracks);
+            localStorage.setItem('projectionType', projectionType);  // can be 'custom/0/1'
 
             if (animate) {
                 Plotly.animate('plot', data, {xaxis: {autorange: true}, yaxis: {autorange: true}});
@@ -81,13 +86,32 @@ let loadPlot = function (animate) {
     });
 };
 
+
+let initSelector = function (name, defaultValue) {
+    let value = localStorage.getItem(name);
+    value = value || defaultValue;
+    $('input[name="' + name + '"][value="' + value + '"]').closest('.btn').button('toggle');
+};
+
+
+let initInput = function (id, defaultValue) {
+    let value = localStorage.getItem(id);
+    value = value || defaultValue;
+    $('#' + id).val(value);
+};
+
+
 $(function() {
-    loadPlot(false);
+    initSelector('data-type', 'trajectories');
+    initSelector('embeddings-type', 'penultimate');
+    initInput('n-tracks', 10);
+    initSelector('projection-type', 'pca');
+    // loadPlot(false);
 
     // hide and show custom projection controls
-    $('input[name="projection-type"]').on('change', function () {
-        $('#projection-controls')[0].hidden = !$('#projection-custom')[0].checked;
-    });
+    // $('input[name="projection-type"]').on('change', function () {
+    //     $('#projection-controls')[0].hidden = !$('#projection-custom')[0].checked;
+    // });
 
     $('#controls').on('submit', function (event) {
         event.preventDefault();
