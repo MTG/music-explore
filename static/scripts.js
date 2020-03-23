@@ -33,20 +33,18 @@ let loadPlot = function (animate) {
     let embeddingsType = $('input[name="embeddings-type"]:checked').val();
     let nTracks = $('#n-tracks').val();
     let projectionType = $('input[name="projection-type"]:checked').val();
-    if (projectionType === 'custom') {
-        projectionType += '/' + $('#dim-x').val() + '/' + $('#dim-y').val();
-    }
+    let dimX = $('#dim-x').val();
+    let dimY = $('#dim-y').val();
 
     let refreshButton = $('#btn-refresh');
     let refreshButtonSpinner = $('#btn-refresh-spinner');
 
-    animate = animate &&
     console.log('Calling ajax...');
     refreshButton.addClass('disabled');
     refreshButtonSpinner.show();
 
     $.ajax({
-        url: '/plot/' + dataType + '/' + embeddingsType + '/' + nTracks + '/' + projectionType,
+        url: '/plot/' + dataType + '/' + embeddingsType + '/' + nTracks + '/' + projectionType + '/' + dimX + "/" + dimY,
         type: 'GET',
         contentType: 'application/json;charset=UTF-8',
         dataType: 'json',
@@ -56,10 +54,15 @@ let loadPlot = function (animate) {
             refreshButton.removeClass('disabled');
             refreshButtonSpinner.hide();
 
-            localStorage.setItem('dataType', dataType);
-            localStorage.setItem('embeddubgsType', embeddingsType);
-            localStorage.setItem('nTracks', nTracks);
-            localStorage.setItem('projectionType', projectionType);  // can be 'custom/0/1'
+            localStorage.setItem('data-type', dataType);
+            localStorage.setItem('embeddings-type', embeddingsType);
+            localStorage.setItem('n-tracks', nTracks);
+            localStorage.setItem('projection-type', projectionType);
+            localStorage.setItem('dim-x', dimX);
+            localStorage.setItem('dim-y', dimY);
+
+            // TODO: set animate appropriately
+            animate = false;
 
             if (animate) {
                 Plotly.animate('plot', data, {xaxis: {autorange: true}, yaxis: {autorange: true}});
@@ -104,9 +107,12 @@ let initInput = function (id, defaultValue) {
 $(function() {
     initSelector('data-type', 'trajectories');
     initSelector('embeddings-type', 'penultimate');
-    initInput('n-tracks', 10);
     initSelector('projection-type', 'pca');
-    // loadPlot(false);
+    initInput('n-tracks', 10);
+    initInput('dim-x', 0);
+    initInput('dim-y', 1);
+
+    loadPlot(false);
 
     // hide and show custom projection controls
     // $('input[name="projection-type"]').on('change', function () {

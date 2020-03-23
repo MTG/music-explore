@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from visualize.commons import load_embeddings, reduce, get_trajectories, get_averages
-from instance.config import EMBEDDINGS_DIR, TAGGRAMS_DIR
+from instance.config import PENULTIMATE_DIR, TAGGRAMS_DIR
 
 MATPLOTLIB_FIGSIZE = [12, 10]
 
@@ -27,7 +27,7 @@ def plot_averages_sns(embeddings_2d):
 def main():
     path = Path(TAGGRAMS_DIR)
     embeddings, _ = load_embeddings(path, n_tracks=20)
-    embeddings_reduced = reduce(embeddings, method='tsne')
+    embeddings_reduced = reduce(embeddings, projection_type='tsne')
 
     plot_trajectories_sns(embeddings_reduced)
     plot_averages_sns(embeddings_reduced)

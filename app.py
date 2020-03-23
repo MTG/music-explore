@@ -1,8 +1,10 @@
 import json
+from pathlib import Path
 
 from flask import Flask, render_template, logging, url_for
 import plotly
 
+from visualize.commons import load_embeddings, reduce
 from visualize.web import get_plotly_fig
 
 app = Flask(__name__, instance_relative_config=True)
@@ -40,26 +42,27 @@ def get_jamendo_stream_url(track_id):
     }
 
 
-@app.route('/plot/<string:plot_type>/<string:embeddings_type>/<int:n_tracks>/<string:projection_type>')
-def plot_reduced(plot_type, embeddings_type, n_tracks, projection_type):
-    return plot(plot_type, embeddings_type, n_tracks, projection_type)
-
-
-@app.route('/plot/<string:plot_type>/<string:embeddings_type>/<int:n_tracks>/custom/<int:x>/<int:y>')
-def plot_custom(plot_type, embeddings_type, n_tracks, x, y):
-    return plot(plot_type, embeddings_type, n_tracks, (x, y))
-
-
-def plot(plot_type, embeddings_type, n_tracks, projection_type):
-    if embeddings_type == 'penultimate':
-        path = app.config['EMBEDDINGS_DIR']
-    elif embeddings_type == 'taggrams':
-        path = app.config['TAGGRAMS_DIR']
-    else:
-        return {'error': f'Bad embeddings type: {embeddings_type}'}, 400
-
+@app.route('/plot/<string:plot_type>/<string:embeddings_type>/<int:n_tracks>/<string:projection_type>/<int:x>/<int:y>')
+def plot(plot_type, embeddings_type, n_tracks, projection_type, x, y):
     try:
-        data = get_plotly_fig(path, plot_type, n_tracks, projection_type)
+        embeddings_dir = Path(app.config['EMBEDDINGS_DIR'])
+        if projection_type == 'original':
+            embeddings_dir /= embeddings_type
+        elif projection_type in ['pca', 'tsne']:
+            if app.config['USE_PRECOMPUTED_PCA']:
+                embeddings_dir /= f'{embeddings_type}_pca'  # lesser evil so far
+            else:
+                raise NotImplementedError('Dynamic PCA is not supported yet')
+        else:
+            raise ValueError(f"Invalid projection_type: {projection_type}, should be 'original', 'pca' or 'tsne'")
+
+        dimensions = [x, y] if projection_type in ['custom', 'pca'] else None
+        embeddings, names = load_embeddings(embeddings_dir, n_tracks=n_tracks, dimensions=dimensions)
+
+        if projection_type == 'tsne':
+            embeddings = reduce(embeddings, projection_type, n_dimensions_out=2)
+
+        data = get_plotly_fig(embeddings, names, plot_type)
     except ValueError as e:
         return {'error': str(e)}, 400
 

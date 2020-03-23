@@ -4,7 +4,7 @@ import logging
 from musicnn.extractor import extractor
 import numpy as np
 
-from instance.config import AUDIO_DIR, EMBEDDINGS_DIR, TAGGRAMS_DIR
+from instance.config import AUDIO_DIR, PENULTIMATE_DIR, TAGGRAMS_DIR
 
 logger = logging.getLogger(__file__)
 handler = logging.StreamHandler()
@@ -21,7 +21,7 @@ def process():
 
     for i, audio_file in enumerate(audio_files):
         relative_path = audio_file.relative_to(AUDIO_DIR).with_suffix('.npy')
-        embeddings_file = Path(EMBEDDINGS_DIR) / relative_path
+        embeddings_file = Path(PENULTIMATE_DIR) / relative_path
         taggram_file = Path(TAGGRAMS_DIR) / relative_path
         status = 'skipped'
         if not embeddings_file.exists() or not taggram_file.exists():

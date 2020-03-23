@@ -4,43 +4,42 @@ import numpy as np
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 
-TSNE_MAX_DIMS = 50
 EDGE_IGNORE = 0
 
 
-def load_embeddings(path: Path, n_tracks=None):
-    embedding_files = sorted(path.glob('**/*.npy'))
+def load_embeddings(path: Path, n_tracks=None, dimensions=None):
+    embedding_files = sorted(path.rglob('*.npy'))
     if len(embedding_files) == 0:
         raise ValueError(f'No data available, maybe path is wrong: {path}')
-    n_tracks = n_tracks or len(embedding_files)
-    # TODO: replace with map?
-    embeddings = [np.load(str(embedding_file)) for embedding_file in embedding_files[:n_tracks]]
-    names = [embedding_file.stem for embedding_file in embedding_files[:n_tracks]]
-    return embeddings, names  # list of 2d matrices
+
+    if n_tracks is not None:
+        embedding_files = embedding_files[:n_tracks]
+
+    if dimensions is None:
+        embeddings = [np.load(str(embedding_file)) for embedding_file in embedding_files]
+    else:
+        embeddings = [np.load(str(embedding_file))[:, dimensions] for embedding_file in embedding_files]
+
+    names = [embedding_file.stem for embedding_file in embedding_files]
+    return embeddings, names  # list of 2d matrices, list of names
 
 
-def reduce(embeddings, method='pca', dimensions=2):
+def reduce(embeddings, projection_type, n_dimensions_out=None, n_dimensions_in=None, verbose=False):
+    if projection_type == 'tsne':
+        projection_class = TSNE
+    elif projection_type == 'pca':
+        projection_class = PCA
+    else:
+        raise ValueError(f'Invalid projection_type: {projection_type}')
+
     embeddings_stacked = np.vstack(embeddings)
     lengths = list(map(len, embeddings))
 
-    if method == 'tsne':
-        intermediate_pca = PCA(n_components=TSNE_MAX_DIMS)
-        embeddings_intermediate = intermediate_pca.fit_transform(embeddings_stacked)
+    if n_dimensions_in is not None:
+        embeddings_stacked = embeddings_stacked[:, :n_dimensions_in]
 
-        tsne = TSNE(n_components=dimensions, random_state=0)
-        embeddings_reduced = tsne.fit_transform(embeddings_intermediate)
-
-    elif method == 'pca':
-        pca = PCA(n_components=dimensions)
-        embeddings_reduced = pca.fit_transform(embeddings_stacked)
-
-    elif isinstance(method, tuple):
-        if not len(method) == 2:
-            raise ValueError("Method tuple should have length of 2")
-        embeddings_reduced = embeddings_stacked[:, method]
-
-    else:
-        raise ValueError("Method should be 'tsne', 'pca' or a tuple of dimensions (e.g. (10, 11))")
+    projection = projection_class(n_components=n_dimensions_out, random_state=0, verbose=verbose)
+    embeddings_reduced = projection.fit_transform(embeddings_stacked)
 
     return np.split(embeddings_reduced, np.cumsum(lengths)[:-1])
 
@@ -62,6 +61,6 @@ def get_averages(embeddings_2d):
     avg = np.array([item.mean(axis=0) for item in embeddings_2d])
     std = np.array([item.std(axis=0).mean() for item in embeddings_2d])
     std = std / std.std()
-    print(f'Standard deviations = {std}')
+    # print(f'Standard deviations = {std}')
     return avg, std
 

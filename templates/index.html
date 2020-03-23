@@ -34,10 +34,10 @@
                     <div class="form-group form-row">
                         <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
                             <label class="btn btn-info">
-                                <input type="radio" name="embeddings-type" value="penultimate">Penultimate
+                                <input type="radio" name="embeddings-type" value="penultimate">Penultimate (200)
                             </label>
                             <label class="btn btn-info">
-                                <input type="radio" name="embeddings-type" value="taggrams">Taggrams
+                                <input type="radio" name="embeddings-type" value="taggrams">Taggrams (50)
                             </label>
                         </div>
                     </div>
@@ -60,7 +60,7 @@
                                 <input type="radio" name="projection-type" value="tsne">T-SNE
                             </label>
                             <label class="btn btn-secondary">
-                                <input type="radio" name="projection-type" id="projection-custom" value="custom">Custom
+                                <input type="radio" name="projection-type" id="projection-original" value="original">Original
                             </label>
                         </div>
                     </div>
@@ -79,6 +79,20 @@
                             </div>
                             <input type="text" class="form-control" id="dim-y" value="1">
                         </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group form-row">
+                        <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
+                            <label class="btn btn-success">
+                                <input type="radio" name="audio" value="on-hover">Hover
+                            </label>
+                            <label class="btn btn-success">
+                                <input type="radio" name="audio" value="on-click">Click
+                            </label>
+                            <label class="btn btn-success">
+                                <input type="radio" name="audio" value="disabled">Disabled
+                            </label>
                         </div>
                     </div>
 

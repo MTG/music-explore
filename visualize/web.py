@@ -1,10 +1,7 @@
-from pathlib import Path
-
 import numpy as np
 import plotly.graph_objects as go
 
-from visualize.commons import load_embeddings, reduce, get_trajectories, get_averages
-
+from visualize.commons import get_trajectories, get_averages
 
 PLOTLY_MARKER_SCALE = 10
 SEGMENT_LENGTH = 3
@@ -60,19 +57,14 @@ def get_averages_plotly(embeddings_2d, names):
     return fig
 
 
-def get_plotly_fig(source, plot_type, n_tracks, method):
-    path = Path(source)
-
-    embeddings, names = load_embeddings(path, n_tracks=n_tracks)
-    embeddings_reduced = reduce(embeddings, method=method)
-
+def get_plotly_fig(embeddings, names, plot_type):
     if plot_type == 'averages':
-        fig = get_averages_plotly(embeddings_reduced, names)
+        fig = get_averages_plotly(embeddings, names)
     elif plot_type == 'trajectories':
-        fig = get_trajectories_plotly(embeddings_reduced, names)
+        fig = get_trajectories_plotly(embeddings, names)
     elif plot_type == 'segments':
-        fig = get_segments_plotly(embeddings_reduced, names)
+        fig = get_segments_plotly(embeddings, names)
     else:
-        raise ValueError("plot_type should be 'averages', 'trajectories' or 'segments'")
+        raise ValueError(f"Invalid plot_type: {plot_type}, should be 'averages', 'trajectories' or 'segments'")
 
     return fig
