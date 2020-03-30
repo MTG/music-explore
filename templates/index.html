@@ -18,6 +18,15 @@
             <div class="row">
                 <form id="controls" class="col-2">
                     <div class="form-group form-row">
+                        <div class="input-group col-12">
+                            <div class="input-group-prepend">
+                                <label for="n-tracks" class="input-group-text">N</label>
+                            </div>
+                            <input type="number" min="1" class="form-control" id="n-tracks">
+                        </div>
+                    </div>
+
+                    <div class="form-group form-row">
                         <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
                             <label class="btn btn-danger">
                                 <input type="radio" name="data-type" value="averages">Averages
@@ -43,24 +52,15 @@
                     </div>
 
                     <div class="form-group form-row">
-                        <div class="input-group col-12">
-                            <div class="input-group-prepend">
-                                <label for="n-tracks" class="input-group-text">N</label>
-                            </div>
-                            <input type="text" class="form-control" id="n-tracks" value="10">
-                        </div>
-                    </div>
-
-                    <div class="form-group form-row">
                         <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
                             <label class="btn btn-secondary">
                                 <input type="radio" name="projection-type" value="pca">PCA
                             </label>
                             <label class="btn btn-secondary">
-                                <input type="radio" name="projection-type" value="tsne">T-SNE
+                                <input type="radio" name="projection-type" id="projection-tsne" value="tsne">T-SNE
                             </label>
                             <label class="btn btn-secondary">
-                                <input type="radio" name="projection-type" id="projection-original" value="original">Original
+                                <input type="radio" name="projection-type" value="original">Original
                             </label>
                         </div>
                     </div>
@@ -71,37 +71,37 @@
                             <div class="input-group-prepend">
                                 <label for="dim-x" class="input-group-text">X</label>
                             </div>
-                            <input type="text" class="form-control" id="dim-x" value="0">
+                            <input type="number" class="form-control" min="0" max="200" id="dim-x" value="0">
                         </div>
                         <div class="input-group">
                             <div class="input-group-prepend">
                                 <label for="dim-y" class="input-group-text">Y</label>
                             </div>
-                            <input type="text" class="form-control" id="dim-y" value="1">
+                            <input type="number" class="form-control" min="0" max="200" id="dim-y" value="1">
                         </div>
                         </div>
                     </div>
 
-                    <div class="form-group form-row">
-                        <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
-                            <label class="btn btn-success">
-                                <input type="radio" name="audio" value="on-hover">Hover
-                            </label>
-                            <label class="btn btn-success">
-                                <input type="radio" name="audio" value="on-click">Click
-                            </label>
-                            <label class="btn btn-success">
-                                <input type="radio" name="audio" value="disabled">Disabled
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="form-row justify-content-center">
+                    <div class="form-group form-row justify-content-center">
                         <button id="btn-refresh" type="submit" class="btn btn-primary">
                             Reload
                             <span id="btn-refresh-spinner" class="spinner-border spinner-border-sm" role="status"
                                   aria-hidden="true" style="display: none;"></span>
                         </button>
+                    </div>
+
+                    <div class="form-group form-row">
+                        <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
+                            <label class="btn btn-success">
+                                <input type="radio" id="audio-on-hover" name="audio" value="on-hover">Hover
+                            </label>
+                            <label class="btn btn-success">
+                                <input type="radio" id="audio-on-click" name="audio" value="on-click">Click
+                            </label>
+                            <label class="btn btn-success">
+                                <input type="radio" id="audio-disabled" name="audio" value="disabled">Disabled
+                            </label>
+                        </div>
                     </div>
                 </form>
 

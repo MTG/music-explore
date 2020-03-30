@@ -42,6 +42,11 @@ def get_jamendo_stream_url(track_id):
     }
 
 
+@app.route('/tags')
+def get_tags():
+    return json.dumps(app.config['EMBEDDING_LABELS'])
+
+
 @app.route('/plot/<string:plot_type>/<string:embeddings_type>/<int:n_tracks>/<string:projection_type>/<int:x>/<int:y>')
 def plot(plot_type, embeddings_type, n_tracks, projection_type, x, y):
     try:
@@ -56,17 +61,24 @@ def plot(plot_type, embeddings_type, n_tracks, projection_type, x, y):
         else:
             raise ValueError(f"Invalid projection_type: {projection_type}, should be 'original', 'pca' or 'tsne'")
 
-        dimensions = [x, y] if projection_type in ['custom', 'pca'] else None
+        dimensions = [x, y] if projection_type in ['original', 'pca'] else None
         embeddings, names = load_embeddings(embeddings_dir, n_tracks=n_tracks, dimensions=dimensions)
 
         if projection_type == 'tsne':
             embeddings = reduce(embeddings, projection_type, n_dimensions_out=2)
 
-        data = get_plotly_fig(embeddings, names, plot_type)
+        figure = get_plotly_fig(embeddings, names, plot_type)
+
+        if projection_type == 'original' and embeddings_type == 'taggrams':
+            labels = app.config['EMBEDDING_LABELS']
+            figure.update_layout(
+                xaxis_title=labels[x],
+                yaxis_title=labels[y]
+            )
     except ValueError as e:
         return {'error': str(e)}, 400
 
-    return json.dumps(data, cls=plotly.utils.PlotlyJSONEncoder)
+    return json.dumps(figure, cls=plotly.utils.PlotlyJSONEncoder)
 
 
 if __name__ == '__main__':
