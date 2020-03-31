@@ -31,7 +31,7 @@ def process():
             np.save(embeddings_file, features['penultimate'])
             np.save(taggram_file, taggram)
             status = 'processed'
-        logger.info(f'Audio {audio_file.stem:>8} ({i+1:>5}/{total:>5}) - {status}')
+        logger.info(f'Audio {audio_file.stem:>8} ({i + 1:>5}/{total:>5}) - {status}')
 
 
 if __name__ == '__main__':

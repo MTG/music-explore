@@ -34,7 +34,7 @@ let stopAudio = function () {
 };
 
 let currentSelectorValue = function (name) {
-    return $('input[name='+name+']:checked').val();
+    return $('input[name=' + name + ']:checked').val();
 };
 
 let selectingTags = function () {
@@ -82,7 +82,7 @@ let loadPlot = function (animate) {
             if (animate) {
                 Plotly.animate('plot', data, {xaxis: {autorange: true}, yaxis: {autorange: true}});
             } else {
-                Plotly.newPlot('plot', data);
+                Plotly.newPlot('plot', data, {}, {responsive: true});
                 // plotDiv.on('plotly_unhover', function(data) {
                 //     console.log('Unhover event');
                 //     stopAudio();
@@ -100,7 +100,7 @@ let loadPlot = function (animate) {
 };
 
 
-let initSelector = function (name, defaultValue, set=false) {
+let initSelector = function (name, defaultValue, set = false) {
     let value = localStorage.getItem(name);
     value = value || defaultValue;
     $('input[name="' + name + '"][value="' + value + '"]').closest('.btn').button('toggle');
@@ -162,7 +162,8 @@ let setDimensionMax = function (embeddingsType) {
     }
 };
 
-$(function() {
+
+$(function () {
     initSelector('data-type', 'trajectories');
     let embeddingsType = initSelector('embeddings-type', 'penultimate');
     setDimensionMax(embeddingsType);
@@ -175,7 +176,7 @@ $(function() {
 
     // hide custom projection controls on tsne
     $('input[name="projection-type"]').change(function () {
-         $('#projection-controls')[0].hidden = this.value === 'tsne';
+        $('#projection-controls')[0].hidden = this.value === 'tsne';
     });
 
 
@@ -196,6 +197,25 @@ $(function() {
     $('input[name=audio]').change(function () {
         console.log('Changing audio bind: ' + this.value);
         changeAudioBind(this.value, false)
+    });
+
+    $('#scale-log').click(function (e) {
+        if (e.target.tagName.toUpperCase() === "LABEL") {
+            return;
+        }
+        let type = this.checked ? 'log' : 'linear';
+        let plotDiv = $('#plot')[0];
+        Plotly.relayout(plotDiv, {
+            xaxis: {
+                type: type,
+                autorange: true
+            },
+            yaxis: {
+                type: type,
+                autorange: true
+            }
+        });
+        // TODO: keep labels
     });
 
     // dimensions popup

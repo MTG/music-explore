@@ -64,4 +64,3 @@ def get_averages(embeddings_2d):
     std = std / std.std()
     # print(f'Standard deviations = {std}')
     return avg, std
-
