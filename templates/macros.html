@@ -1,0 +1,5 @@
+{% macro nav_link(link, name) %}
+    <li class="nav-item {% if page == link %} active {% endif %}">
+        <a class="nav-link" href="/{{ link }}">{{ name }}</a>
+    </li>
+{% endmacro %}

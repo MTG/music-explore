@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% set title = 'Playground' %}
+{% set page = 'playground' %}
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-2">
+                <form id="controls">
+                    <div class="form-group form-row">
+                        <div class="input-group col-12">
+                            <div class="input-group-prepend">
+                                <label for="n-tracks" class="input-group-text">N</label>
+                            </div>
+                            <input type="number" min="1" class="form-control" id="n-tracks">
+                        </div>
+                    </div>
+
+                    <div class="form-group form-row">
+                        <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
+                            <label class="btn btn-danger">
+                                <input type="radio" name="data-type" value="averages">Averages
+                            </label>
+                            <label class="btn btn-danger">
+                                <input type="radio" name="data-type" value="segments">Segments
+                            </label>
+                            <label class="btn btn-danger">
+                                <input type="radio" name="data-type" value="trajectories">Trajectories
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group form-row">
+                        <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
+                            <label class="btn btn-info">
+                                <input type="radio" name="embeddings-type" value="penultimate">Penultimate (200)
+                            </label>
+                            <label class="btn btn-info">
+                                <input type="radio" name="embeddings-type" value="taggrams">Taggrams (50)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group form-row">
+                        <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
+                            <label class="btn btn-secondary">
+                                <input type="radio" name="projection-type" value="pca">PCA
+                            </label>
+                            <label class="btn btn-secondary">
+                                <input type="radio" name="projection-type" id="projection-tsne" value="tsne">T-SNE
+                            </label>
+                            <label class="btn btn-secondary">
+                                <input type="radio" name="projection-type" value="original">Original
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group form-row" id="projection-controls">
+                        <div class="col-12">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <label for="dim-x" class="input-group-text">X</label>
+                                </div>
+                                <input type="number" class="form-control" min="0" max="200" id="dim-x" value="0">
+                            </div>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <label for="dim-y" class="input-group-text">Y</label>
+                                </div>
+                                <input type="number" class="form-control" min="0" max="200" id="dim-y" value="1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group form-row justify-content-center">
+                        <button id="btn-refresh" type="submit" class="btn btn-primary">
+                            Reload
+                            <span id="btn-refresh-spinner" class="spinner-border spinner-border-sm" role="status"
+                                  aria-hidden="true" style="display: none;"></span>
+                        </button>
+                    </div>
+
+                    <div class="form-group form-row">
+                        <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
+                            <label class="btn btn-success">
+                                <input type="radio" id="audio-on-hover" name="audio" value="on-hover">Hover
+                            </label>
+                            <label class="btn btn-success">
+                                <input type="radio" id="audio-on-click" name="audio" value="on-click">Click
+                            </label>
+                            <label class="btn btn-success">
+                                <input type="radio" id="audio-disabled" name="audio" value="disabled">Disabled
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group form-row">
+                        <div class="btn-group-toggle col-12" data-toggle="buttons">
+                            <label class="btn btn-light form-control">
+                                <input type="checkbox" id="scale-log" autocomplete="off">Log-scale
+                            </label>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+
+            <div class="col-10">
+                <div id="plot" class="plot justify-content-center"></div>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <audio id="audio" controls>
+                <source id="audio-source" type="audio/mpeg">
+            </audio>
+        </div>
+    </div>
+{% endblock %}

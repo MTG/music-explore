@@ -12,8 +12,14 @@ app.config.from_pyfile('config.py')
 
 
 @app.route('/')
-def landing():
-    return render_template('index.html', title='Music Exploration')
+@app.route('/playground')
+def playground():
+    return render_template('playground.html')
+
+
+@app.route('/explore')
+def explore():
+    return render_template('explore.html')
 
 
 def jamendo_template(track_id):
