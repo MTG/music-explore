@@ -4,7 +4,7 @@
 {% block content %}
     <div class="container">
         <div class="row">
-            <div class="col-2">
+            <div class="col-md-2">
                 <form id="controls">
                     <div class="form-group form-row">
                         <div class="input-group col-12">
@@ -104,7 +104,7 @@
                 </form>
             </div>
 
-            <div class="col-10">
+            <div class="col-md-10">
                 <div id="plot" class="plot justify-content-center"></div>
             </div>
         </div>
@@ -115,4 +115,8 @@
             </audio>
         </div>
     </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='playground.js') }}"></script>
 {% endblock %}

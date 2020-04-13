@@ -1,7 +1,7 @@
 from pathlib import Path
 import argparse
 
-from visualize.commons import reduce
+from app.visualize.commons import reduce
 from tqdm import tqdm
 import numpy as np
 

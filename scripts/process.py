@@ -13,6 +13,7 @@ logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
 
+# TODO rewrite with essentia extractors
 def process():
     path = Path(AUDIO_DIR)
     audio_files = sorted(path.glob('**/*.mp3'))[:]

@@ -3,8 +3,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from visualize.commons import load_embeddings, reduce, get_trajectories, get_averages
-from instance.config import PENULTIMATE_DIR, TAGGRAMS_DIR
+from app.visualize.commons import load_embeddings, reduce, get_trajectories, get_averages
+from instance.config import TAGGRAMS_DIR
 
 MATPLOTLIB_FIGSIZE = [12, 10]
 

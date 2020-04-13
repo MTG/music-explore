@@ -1,11 +1,12 @@
 import json
 from pathlib import Path
 
-from flask import Flask, render_template, logging, url_for
+from flask import Flask, render_template, url_for
 import plotly
 
 from visualize.commons import load_embeddings, reduce
 from visualize.web import get_plotly_fig
+from data import EMBEDDING_LABELS
 
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_pyfile('config.py')
@@ -19,7 +20,8 @@ def playground():
 
 @app.route('/explore')
 def explore():
-    return render_template('explore.html')
+    track_ids = ['1022300:27:30', '1080900:0:3', '1080900:30:33']
+    return render_template('explore.html', audio_urls=[get_audio_url(track_id)['url'] for track_id in track_ids])
 
 
 def jamendo_template(track_id):
@@ -34,7 +36,7 @@ def localhost_template(track_id):
 
 
 @app.route('/jamendo/<string:track_id>')
-def get_jamendo_stream_url(track_id):
+def get_audio_url(track_id):
     is_segmented = ':' in track_id
     url_suffix = ''
     if is_segmented:
@@ -50,7 +52,7 @@ def get_jamendo_stream_url(track_id):
 
 @app.route('/tags')
 def get_tags():
-    return json.dumps(app.config['EMBEDDING_LABELS'])
+    return json.dumps(EMBEDDING_LABELS)
 
 
 @app.route('/plot/<string:plot_type>/<string:embeddings_type>/<int:n_tracks>/<string:projection_type>/<int:x>/<int:y>')
@@ -76,10 +78,9 @@ def plot(plot_type, embeddings_type, n_tracks, projection_type, x, y):
         figure = get_plotly_fig(embeddings, names, plot_type)
 
         if projection_type == 'original' and embeddings_type == 'taggrams':
-            labels = app.config['EMBEDDING_LABELS']
             figure.update_layout(
-                xaxis_title=labels[x],
-                yaxis_title=labels[y]
+                xaxis_title=EMBEDDING_LABELS[x],
+                yaxis_title=EMBEDDING_LABELS[y]
             )
     except ValueError as e:
         return {'error': str(e)}, 400
@@ -88,4 +89,4 @@ def plot(plot_type, embeddings_type, n_tracks, projection_type, x, y):
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host="0.0.0.0")

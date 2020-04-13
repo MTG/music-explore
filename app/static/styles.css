@@ -5,3 +5,8 @@ body {
 .plot {
     height: 650px;
 }
+
+.btn-explore {
+    height: 100px;
+    font-size: 48px;
+}
