@@ -2,7 +2,7 @@
 
 ## Development
 
-## Requirements
+### Requirements
 
 Python 3.7+
 
@@ -82,3 +82,10 @@ virtual environment (recommended)
 pip install seaborn==0.10.0 scikit-learn==0.22.1
 python -m visualize.sns
 ```
+
+## Acknowledgments
+
+This project has received funding from the European Union's Horizon 2020 research and innovation programme under the 
+Marie Skłodowska-Curie grant agreement No. 765068.
+
+<img src="https://upload.wikimedia.org/wikipedia/commons/b/b7/Flag_of_Europe.svg" height="64" alt="Flag of Europe">
