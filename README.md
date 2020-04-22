@@ -53,23 +53,25 @@ docker run -p 8080:80 -v /path/to/data:/data --env JAMENDO_CLIENT_ID=XXXXXXXX mu
 
 ## Creating data
 
-### Extracting embeddings *(to be updated)*
+### Extracting embeddings
 
-Currently MusiCNN (v0.1.0) on PyPi is not updated with the important fix in embedding extraction, so it needs to be 
-cloned and installed locally. The audio processing script has some heavy dependencies such as `tensorflow`, so they are 
-not included in `requirements.txt`. It is recommended to use separate virtual environment for it.
+To learn more about essentia-tensorflow, see this 
+[blog post](https://mtg.github.io/essentia-labs/news/2020/01/16/tensorflow-models-released/), here are just a list of 
+steps
 
-After the fix will be deployed, it will be as easy as:
 ```shell script
-pip install musicnn
-python process.py
+python -m venv venv_process  # Create separate virtual environment
+source venv_process/bin/activate
+pip install -f https://essentia.upf.edu/python-wheels/ essentia-tensorflow  # install essentia-tensorflow
+pip install tqdm  # install other dependencies
+wget https://essentia.upf.edu/models/autotagging/mtt/mtt-musicnn.pb  # download the model
+python scripts/process_essentia.py /path/to/audio/ /path/to/embeddings/ musicnn mtt-musicnn.pb --layer=model/dense/BiasAdd  # process audio
 ```
 
 ### Applying PCA
 
 ```shell script
-python scripts/reduce_offline.py /path/to/embeddings/penultimate /path/to/embeddings/penultimate_pca pca
-python scripts/reduce_offline.py /path/to/embeddings/taggrams /path/to/embeddings/taggrams_pca pca
+python scripts/reduce_offline.py /path/to/embeddings /path/to/embeddings_pca pca
 ```
 
 ## Plotting offline *(to be updated)*
