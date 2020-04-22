@@ -62,6 +62,7 @@ steps
 ```shell script
 python -m venv venv_process  # Create separate virtual environment
 source venv_process/bin/activate
+pip install --upgrade pip wheel
 pip install -f https://essentia.upf.edu/python-wheels/ essentia-tensorflow  # install essentia-tensorflow
 pip install tqdm  # install other dependencies
 wget https://essentia.upf.edu/models/autotagging/mtt/mtt-musicnn.pb  # download the model

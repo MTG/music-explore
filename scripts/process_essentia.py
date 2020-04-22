@@ -13,16 +13,8 @@ ALGORITHMS = {
     'vggish': TensorflowPredictVGGish
 }
 
-PENULTIMATE_LAYER = {
-    'musicnn': 'model/dense/BiasAdd',
-    'vgg': '?',
-    'vggish': '?'
-}
 
-OUTPUT_LAYER =
-
-
-def process_essentia(input_dir, output_dir, architecture, model, penultimate, accumulate, dry):
+def process_essentia(input_dir, output_dir, architecture, model, layer, accumulate, dry):
     input_dir = Path(input_dir)
     audio_files = sorted(input_dir.rglob('*.mp3'))
     if len(audio_files) == 0:
@@ -33,14 +25,13 @@ def process_essentia(input_dir, output_dir, architecture, model, penultimate, ac
         output_dir.mkdir(exist_ok=True)
 
     algorithm = ALGORITHMS[architecture]
-    output_layer = PENULTIMATE_LAYER[architecture] if penultimate else OUTPUT_LAYER
 
     for audio_file in tqdm(audio_files):
         relative_path = audio_file.relative_to(input_dir).with_suffix('.npy')
         embeddings_file = output_dir / relative_path
         if not embeddings_file.exists():
             audio = MonoLoader(filename=str(audio_file), sampleRate=SAMPLE_RATE)()
-            embeddings = algorithm(graphFilename=model, patchHopSize=0, output=output_layer,
+            embeddings = algorithm(graphFilename=model, patchHopSize=0, output=layer,
                                    accumulate=accumulate)(audio)
             if not dry:
                 embeddings_file.parent.mkdir(parents=True, exist_ok=True)
@@ -58,5 +49,5 @@ if __name__ == '__main__':
     parser.add_argument('--dry', action='store_true', help='dry run')
     args = parser.parse_args()
 
-    process_essentia(args.input_dir, args.output_dir, args.architecture, args.model, args.penultimate, args.accumulate,
+    process_essentia(args.input_dir, args.output_dir, args.architecture, args.model, args.layer, args.accumulate,
                      args.dry)
