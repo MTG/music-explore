@@ -27,9 +27,9 @@ def load_embeddings(path: Path, n_tracks=None, dimensions=None):
 
 def reduce(embeddings, projection_type, n_dimensions_out=None, n_dimensions_in=None, verbose=False):
     if projection_type == 'tsne':
-        projection_class = TSNE
+        projection = TSNE(n_components=n_dimensions_out, random_state=0, verbose=verbose)
     elif projection_type == 'pca':
-        projection_class = PCA
+        projection = PCA(n_components=n_dimensions_out, random_state=0)
     else:
         raise ValueError(f'Invalid projection_type: {projection_type}')
 
@@ -39,7 +39,6 @@ def reduce(embeddings, projection_type, n_dimensions_out=None, n_dimensions_in=N
     if n_dimensions_in is not None:
         embeddings_stacked = embeddings_stacked[:, :n_dimensions_in]
 
-    projection = projection_class(n_components=n_dimensions_out, random_state=0, verbose=verbose)
     embeddings_reduced = projection.fit_transform(embeddings_stacked)
 
     return np.split(embeddings_reduced, np.cumsum(lengths)[:-1])
