@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from "macros.html" import radio_buttons with context %}
 {% set title = 'Playground' %}
 {% set page = 'playground' %}
 {% block content %}
@@ -15,41 +16,24 @@
                         </div>
                     </div>
 
-                    <div class="form-group form-row">
-                        <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
-                            <label class="btn btn-danger">
-                                <input type="radio" name="data-type" value="averages">Averages
-                            </label>
-                            <label class="btn btn-danger">
-                                <input type="radio" name="data-type" value="segments">Segments
-                            </label>
-                            <label class="btn btn-danger">
-                                <input type="radio" name="data-type" value="trajectories">Trajectories
-                            </label>
-                        </div>
-                    </div>
+                    {{ radio_buttons('data-type', ['averages', 'segments', 'trajectories'], 'btn-danger') }}
+
+                    {{ radio_buttons('dataset', datasets, 'btn-warning') }}
+
+                    {{ radio_buttons('dataset', models, 'btn-warning') }}
+
+                    {{ radio_buttons('embeddings-type', ['penultimate', 'taggrams'], 'btn-info') }}
 
                     <div class="form-group form-row">
                         <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
-                            <label class="btn btn-info">
-                                <input type="radio" name="embeddings-type" value="penultimate">Penultimate (200)
+                            <label class="btn btn-secondary">
+                                <input type="radio" name="projection-type" value="original">Original
                             </label>
-                            <label class="btn btn-info">
-                                <input type="radio" name="embeddings-type" value="taggrams">Taggrams (50)
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="form-group form-row">
-                        <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
                             <label class="btn btn-secondary">
                                 <input type="radio" name="projection-type" value="pca">PCA
                             </label>
                             <label class="btn btn-secondary">
                                 <input type="radio" name="projection-type" id="projection-tsne" value="tsne">T-SNE
-                            </label>
-                            <label class="btn btn-secondary">
-                                <input type="radio" name="projection-type" value="original">Original
                             </label>
                         </div>
                     </div>

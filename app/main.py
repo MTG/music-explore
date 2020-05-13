@@ -1,8 +1,9 @@
 import json
 from pathlib import Path
 
-from flask import Flask, render_template, url_for
+from flask import Flask, render_template, url_for, g
 import plotly
+import yaml
 
 from visualize.commons import load_embeddings, reduce
 from visualize.web import get_plotly_fig
@@ -12,10 +13,24 @@ app = Flask(__name__, instance_relative_config=True)
 app.config.from_pyfile('config.py')
 
 
+def get_metadata():
+    if 'metadata' not in g:
+        with open(Path(__file__).parent / 'metadata.yaml') as fp:
+            g.metadata = yaml.safe_load(fp)
+    return g.metadata
+
+
+def get_metadata_dict(entity):
+    metadata = get_metadata()
+    return {key: value['name'] for key, value in metadata[entity].items()}
+
+
 @app.route('/')
 @app.route('/playground')
 def playground():
-    return render_template('playground.html')
+    return render_template('playground.html',
+                           datasets=get_metadata_dict('datasets'),
+                           models=get_metadata_dict('models'))
 
 
 @app.route('/explore')
