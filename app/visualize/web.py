@@ -3,6 +3,7 @@ import plotly.graph_objects as go
 
 from visualize.commons import get_trajectories, get_averages
 
+PLOTLY_MARGINS = dict(l=40, r=0, t=0, b=40)
 PLOTLY_MARKER_SCALE = 10
 SEGMENT_LENGTH = 3
 
@@ -67,4 +68,7 @@ def get_plotly_fig(embeddings, names, plot_type):
     else:
         raise ValueError(f"Invalid plot_type: {plot_type}, should be 'averages', 'trajectories' or 'segments'")
 
+    fig.update_layout(
+        margin=PLOTLY_MARGINS
+    )
     return fig

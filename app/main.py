@@ -7,30 +7,49 @@ import yaml
 
 from visualize.commons import load_embeddings, reduce
 from visualize.web import get_plotly_fig
-from data import EMBEDDING_LABELS
+
+MODELS_DESCRIPTION = 'Model: deep learning architecture'
 
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_pyfile('config.py')
+app.jinja_env.trim_blocks = True
+app.jinja_env.lstrip_blocks = True
 
 
+@app.route('/metadata')
 def get_metadata():
     if 'metadata' not in g:
-        with open(Path(__file__).parent / 'metadata.yaml') as fp:
+        with open(Path(__file__).parent / 'metadata.yaml') as fp:  # TODO: find better way
             g.metadata = yaml.safe_load(fp)
     return g.metadata
 
 
-def get_metadata_dict(entity):
+def get_metadata_dict(entity, attribute='name'):
     metadata = get_metadata()
-    return {key: value['name'] for key, value in metadata[entity].items()}
+    return {key: value[attribute] for key, value in metadata[entity].items()}
+
+
+def get_metadata_triplets(entity, first='name', second='description'):
+    metadata = get_metadata()
+    return [(key, value[first], value[second]) for key, value in metadata[entity].items()]
+
+
+def make_triplets(data, description):
+    return [(key, value, description) for key, value in data.items()]
+
+
+@app.route('/tags')
+def get_tags():
+    return get_metadata_dict('datasets', 'tags')
 
 
 @app.route('/')
 @app.route('/playground')
 def playground():
     return render_template('playground.html',
-                           datasets=get_metadata_dict('datasets'),
-                           models=get_metadata_dict('models'))
+                           datasets=get_metadata_triplets('datasets'),
+                           models=get_metadata_triplets('models'),
+                           tags=get_tags())
 
 
 @app.route('/explore')
@@ -65,37 +84,35 @@ def get_audio_url(track_id):
     }
 
 
-@app.route('/tags')
-def get_tags():
-    return json.dumps(EMBEDDING_LABELS)
-
-
-@app.route('/plot/<string:plot_type>/<string:embeddings_type>/<int:n_tracks>/<string:projection_type>/<int:x>/<int:y>')
-def plot(plot_type, embeddings_type, n_tracks, projection_type, x, y):
+@app.route('/plot/<string:plot_type>/<string:dataset>/<string:model>/<string:layer>/<int:n_tracks>/'
+           '<string:projection_type>/<int:x>/<int:y>')
+def plot(plot_type, dataset, model, layer, n_tracks, projection_type, x, y):
     try:
-        embeddings_dir = Path(app.config['EMBEDDINGS_DIR'])
+        data_dir = Path(app.config['DATA_DIR'])
+        # TODO: validate dataset-model-layer
+        embeddings_dir = f'{dataset}-{model}-{layer}'
+
         if projection_type == 'original':
-            embeddings_dir /= embeddings_type
+            data_dir /= embeddings_dir
         elif projection_type in ['pca', 'tsne']:
-            if app.config['USE_PRECOMPUTED_PCA']:
-                embeddings_dir /= f'{embeddings_type}_pca'  # lesser evil so far
-            else:
-                raise NotImplementedError('Dynamic PCA is not supported yet')
+            data_dir /= f'{embeddings_dir}-pca'  # lesser evil so far
         else:
             raise ValueError(f"Invalid projection_type: {projection_type}, should be 'original', 'pca' or 'tsne'")
 
         dimensions = [x, y] if projection_type in ['original', 'pca'] else None
-        embeddings, names = load_embeddings(embeddings_dir, n_tracks=n_tracks, dimensions=dimensions)
+        embeddings, names = load_embeddings(data_dir, n_tracks=n_tracks, dimensions=dimensions)
 
+        # TODO: try moving tsne to browser
         if projection_type == 'tsne':
             embeddings = reduce(embeddings, projection_type, n_dimensions_out=2)
 
         figure = get_plotly_fig(embeddings, names, plot_type)
 
-        if projection_type == 'original' and embeddings_type == 'taggrams':
+        if projection_type == 'original' and layer == 'taggrams':
+            tags = get_tags()[dataset]
             figure.update_layout(
-                xaxis_title=EMBEDDING_LABELS[x],
-                yaxis_title=EMBEDDING_LABELS[y]
+                xaxis_title=tags[x],
+                yaxis_title=tags[y]
             )
     except ValueError as e:
         return {'error': str(e)}, 400
