@@ -209,7 +209,6 @@ let updateDimSelector = function (metadata) {
 
     elementDropdown.selectpicker('hide');
     elementNumbers.hide();
-    console.log('Updating dimension selector');
 
     if (currentProjectionType === 'original') {
         if (currentLayer === 'taggrams') {
@@ -265,7 +264,7 @@ let initInput = function (id, defaultValue) {
 let initDims = function (metadata, defaultValue) {
     let dimensions = localStorage.getItem('dimensions');
     dimensions = JSON.parse(dimensions) || {}
-    // TODO: make it better? cascade of fors looks horible
+    // TODO: make it better? cascade of fors looks horible.. maybe add semantics
     for (const model in metadata['models']) {
         dimensions[model] = dimensions[model] || {}
         for (const dataset of metadata['models'][model]['datasets']) {
@@ -278,7 +277,6 @@ let initDims = function (metadata, defaultValue) {
             }
         }
     }
-    console.log(JSON.stringify(dimensions));
     localStorage.setItem('dimensions', JSON.stringify(dimensions));
 }
 
@@ -317,8 +315,8 @@ $(function () {
 
         initSelector('model', 'musicnn');
         initSelector('dataset', 'mtt');
-        initSelector('layer', 'embeddings');
-        initSelector('projection-type', 'pca');
+        initSelector('layer', 'taggrams');
+        initSelector('projection-type', 'original');
 
         loadPlot(false);
 
