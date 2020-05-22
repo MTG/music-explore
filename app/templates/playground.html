@@ -36,7 +36,7 @@
 
                 <div class="form-group form-row">
                     {{ radio_buttons([
-                    ('penultimate', 'Penultimate', 'Show embeddings from the second-to-last layer of neural network'),
+                    ('embeddings', 'Embeddings', 'Show embeddings from the second-to-last layer of neural network'),
                     ('taggrams', 'Taggrams', 'Show tag activations from the output layer of neural network')],
                     'layer', 'btn-primary', 'Layer') }}
                 </div>
@@ -45,7 +45,7 @@
                     {{ radio_buttons([
                     ('original', 'Original', 'Select 2 tags or embedding layers to visualize on X and Y axis'),
                     ('pca', 'PCA', 'Select principal components to be visualized'),
-                    ('tsne', 't-SNE', 'Use 2D t-SNE. Best used with N < 30, becomes slow for higher numbers')],
+                    ('tsne', 't-SNE', 'Use 2D t-SNE. Best used with N < 50, becomes slow for higher numbers')],
                     'projection-type', 'btn-info', 'Projection') }}
                 </div>
 
@@ -53,10 +53,10 @@
                     <div class="input-group w-100" id="selector-numbers" style="display: none;">
 {#                        <label for="dim-x" hidden>X</label>#}
                         <input type="number" class="form-control" min="0" id="dim-x" value="0" placeholder="X"
-                               data-toggle="tooltip" data-placement="top" title="test">
+                               data-toggle="tooltip" data-placement="top" data-trigger="hover" title="test">
 {#                        <label for="dim-y" hidden>Y</label>#}
                         <input type="number" class="form-control" min="0" id="dim-y" value="1" placeholder="Y"
-                               data-toggle="tooltip" data-placement="top" title="test">
+                               data-toggle="tooltip" data-placement="top" data-trigger="hover" title="test">
                     </div>
                     <select class="selectpicker" id="selector-dropdown" multiple data-max-options="2"
                             data-live-search="true" data-width="100%" data-size="18" style="display: none;">
@@ -79,7 +79,9 @@
             <div class="form-row justify-content-between">
                 <div class="form-group col-md-auto">
                     <div class="btn-group-toggle col-12" data-toggle="buttons">
-                        <label class="btn btn-outline-secondary form-control">
+                        <label class="btn btn-outline-secondary form-control" data-toggle="tooltip"
+                               data-placement="right" data-trigger="hover"
+                               title="Use log scale for both axes, useful when data is clustered to the axes">
                             <input type="checkbox" id="scale-log" autocomplete="off">Log-scale
                         </label>
                     </div>

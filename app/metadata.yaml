@@ -24,17 +24,17 @@ models:
     name: MusiCNN
     description: 'Musically-motivated convolutional neural network (6 layers, 790k parameters)'
     datasets: [msd, mtt]
-    layers: [taggrams, penultimate]
-    penultimate: 200
+    layers: [taggrams, embeddings]
+    embeddings: 200
   vgg:
     name: VGG
     description: 'Baseline architecture from computer vision, adapted to audio (5 layers, 605k parameters)'
     datasets: [msd, mtt]
-    layers: [taggrams, penultimate]
-    penultimate: 256
+    layers: [taggrams, embeddings]
+    embeddings: 256
   vggish:
     name: VGGish
     description: 'Baseline architecture from computer vision, original implementation (5 layers, 62m parameters)'
     datasets: [audioset]
-    layers: [penultimate]
-    penultimate: 128
+    layers: [embeddings]
+    embeddings: 128

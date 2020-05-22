@@ -21,6 +21,7 @@ let stopAudio = function () {
 };
 
 
+// TODO: replace as many calls to current as possible with parameter passing
 // return the current value of the selector
 let current = function (name) {
     return $('input[name=' + name + ']:checked').val();
@@ -41,8 +42,11 @@ let loadPlot = function (animate) {
     let model = current('model');
     let layer = current('layer');
     let projectionType = current('projection-type');
-    let dimX = $('#dim-x').val();
-    let dimY = $('#dim-y').val();
+    let dims = getCurrentDims(layer, projectionType);
+    if (!dims) {
+        alert('Please select 2 dimensions');
+        return;
+    }
 
     let refreshButton = $('#btn-refresh');
     let refreshButtonSpinner = $('#btn-refresh-spinner');
@@ -53,7 +57,7 @@ let loadPlot = function (animate) {
 
     $.ajax({
         type: 'GET',
-        url: '/plot/' + dataType + '/' + dataset + '/' + model + '/' + layer + '/' + nTracks + '/' + projectionType + '/' + dimX + "/" + dimY,
+        url: '/plot/' + dataType + '/' + dataset + '/' + model + '/' + layer + '/' + nTracks + '/' + projectionType + '/' + dims[0] + "/" + dims[1],
         dataType: 'json',
         success: function (data) {
             console.log('Got plot data:');
@@ -61,14 +65,13 @@ let loadPlot = function (animate) {
             refreshButton.removeClass('disabled');
             refreshButtonSpinner.hide();
 
-            localStorage.setItem('data-type', dataType);
-            localStorage.setItem('dataset', dataset);
-            localStorage.setItem('model', model);
-            localStorage.setItem('layer', layer);
             localStorage.setItem('n-tracks', nTracks);
+            localStorage.setItem('data-type', dataType);
+            localStorage.setItem('model', model);
+            localStorage.setItem('dataset', dataset);
+            localStorage.setItem('layer', layer);
             localStorage.setItem('projection-type', projectionType);
-            localStorage.setItem('dim-x', dimX);
-            localStorage.setItem('dim-y', dimY);
+            saveDims(dims);
 
             // TODO: set animate appropriately
             animate = false;
@@ -94,24 +97,6 @@ let loadPlot = function (animate) {
             refreshButtonSpinner.hide();
         }
     });
-};
-
-
-let initSelector = function (name, defaultValue, set = false) {
-    let value = localStorage.getItem(name);
-    value = value || defaultValue;
-    $('input[name="' + name + '"][value="' + value + '"]').closest('.btn').button('toggle');
-    if (set) {
-        localStorage.setItem(name, value)
-    }
-    return value
-};
-
-
-let initInput = function (id, defaultValue) {
-    let value = localStorage.getItem(id);
-    value = value || defaultValue;
-    $('#' + id).val(value);
 };
 
 let plotEventHandler = function (data) {
@@ -190,17 +175,30 @@ let updateDropdown = function (elementDropdown, populate) {
     populate();
     elementDropdown.selectpicker('refresh');
     elementDropdown.selectpicker('show');
+    elementDropdown.selectpicker('val', getSavedDims());
 };
 
 
 let updateNumbers = function (elementNumbers, max) {
-    console.log('Changing dimension max: ' + max);
-    for (const i of ['x', 'y']) {
-        $('#dim-'+i).attr('max', max).attr('data-original-title', 'Penultimate layer index for ' + i + '-axis');
-    }
+    let savedDims = getSavedDims();
+    ['x', 'y'].forEach(function (axis, i) {
+        $('#dim-'+axis).attr('max', max).attr('data-original-title',
+            'embeddings layer index for ' + axis + '-axis (0~' + max + ')').val(savedDims[i]);
+    });
     elementNumbers.show();
 };
 
+
+let getSavedDims = function () {
+    let dimensions = JSON.parse(localStorage.getItem('dimensions'));
+    return dimensions[current('model')][current('dataset')][current('layer')][current('projection-type')]
+};
+
+let saveDims = function (dimensions) {
+    let savedDimensions = JSON.parse(localStorage.getItem('dimensions'));
+    savedDimensions[current('model')][current('dataset')][current('layer')][current('projection-type')] = dimensions;
+    localStorage.setItem('dimensions', JSON.stringify(savedDimensions))
+}
 
 let updateDimSelector = function (metadata) {
     let currentProjectionType = current('projection-type');
@@ -211,6 +209,7 @@ let updateDimSelector = function (metadata) {
 
     elementDropdown.selectpicker('hide');
     elementNumbers.hide();
+    console.log('Updating dimension selector');
 
     if (currentProjectionType === 'original') {
         if (currentLayer === 'taggrams') {
@@ -220,9 +219,9 @@ let updateDimSelector = function (metadata) {
                     elementDropdown.append('<option value="' + i + '" data-subtext="' + i + '">' + tag + '</option>');
                 });
             });
-        } else if (currentLayer === 'penultimate') {
+        } else if (currentLayer === 'embeddings') {
             let currentModel = current('model')
-            updateNumbers(elementNumbers, metadata['models'][currentModel]['penultimate'] - 1)
+            updateNumbers(elementNumbers, metadata['models'][currentModel]['embeddings'] - 1)
         }
     } else if (currentProjectionType === 'pca') {
         updateDropdown(elementDropdown, function () {
@@ -233,11 +232,59 @@ let updateDimSelector = function (metadata) {
     }
 };
 
+let getCurrentDims = function (layer, projection) {
+    if (projection === 'tsne') {
+        return [0, 1]
+    }
+    if (layer === 'embeddings' && projection === 'original') {
+        return [$('#dim-x').val(), $('#dim-y').val()]
+    }
+    let dims = $('#selector-dropdown').val();
+    if (dims.length === 2) {
+        return dims
+    }
+    return false;
+}
+
+let initSelector = function (name, defaultValue, set = false) {
+    let value = localStorage.getItem(name);
+    value = value || defaultValue;
+    $('#' + name + '-' + value).parent().button('toggle');
+    if (set) {
+        localStorage.setItem(name, value)
+    }
+    return value
+};
+
+let initInput = function (id, defaultValue) {
+    let value = localStorage.getItem(id);
+    value = value || defaultValue;
+    $('#' + id).val(value);
+};
+
+let initDims = function (metadata, defaultValue) {
+    let dimensions = localStorage.getItem('dimensions');
+    dimensions = JSON.parse(dimensions) || {}
+    // TODO: make it better? cascade of fors looks horible
+    for (const model in metadata['models']) {
+        dimensions[model] = dimensions[model] || {}
+        for (const dataset of metadata['models'][model]['datasets']) {
+            dimensions[model][dataset] = dimensions[model][dataset] || {};
+            for (const layer of metadata['models'][model]['layers']) {
+                dimensions[model][dataset][layer] = dimensions[model][dataset][layer] || {};
+                for (const projection of ['original', 'pca']) {
+                    dimensions[model][dataset][layer][projection] = dimensions[model][dataset][layer][projection] || defaultValue;
+                }
+            }
+        }
+    }
+    console.log(JSON.stringify(dimensions));
+    localStorage.setItem('dimensions', JSON.stringify(dimensions));
+}
+
 $(function () {
     // init Bootstrap/Popper tooltips
     $('[data-toggle="tooltip"]').tooltip();
-
-    initSelector('data-type', 'segments');
 
     // make sure that proper options are disabled dynamically
     getMetadata(function (metadata) {
@@ -249,12 +296,11 @@ $(function () {
                 updateSelectors('dataset', modelDatasets, Object.keys(metadata['datasets']))
 
                 let modelLayers = metadata['models'][model]['layers']
-                updateSelectors('layer', modelLayers, ['penultimate', 'taggrams'])
+                updateSelectors('layer', modelLayers, ['embeddings', 'taggrams'])
 
-                // updateDimSelector(metadata); TODO: later to pudate PCA percentages
+                updateDimSelector(metadata);
             });
         }
-        initSelector('model', 'musicnn');
 
         let func = function () {
             updateDimSelector(metadata);
@@ -264,24 +310,19 @@ $(function () {
         $('input[name=layer]').change(func);
         $('input[name=projection-type]').change(func);
 
+        initInput('n-tracks', 10);
+        initSelector('data-type', 'segments');
 
+        initDims(metadata, [0, 1])
+
+        initSelector('model', 'musicnn');
         initSelector('dataset', 'mtt');
-        initSelector('layer', 'penultimate');
+        initSelector('layer', 'embeddings');
+        initSelector('projection-type', 'pca');
+
+        loadPlot(false);
+
     });
-
-    // setDimensionMax(layer);
-    initSelector('projection-type', 'pca');
-    initInput('n-tracks', 10);
-    initInput('dim-x', 0);
-    initInput('dim-y', 1);
-
-    loadPlot(false);
-
-    // // hide custom projection controls on tsne
-    // $('input[name="projection-type"]').change(function () {
-    //     $('#projection-controls')[0].hidden = this.value === 'tsne';
-    // });
-
 
     // submit button bind
     $('#controls').on('submit', function (event) {
@@ -297,6 +338,7 @@ $(function () {
         changeAudioBind(this.value, false)
     });
 
+    // log-scale interaction
     $('#scale-log').click(function (e) {
         if (e.target.tagName.toUpperCase() === "LABEL") {
             return;

@@ -5,23 +5,15 @@
 {% endmacro %}
 
 {% macro radio_buttons(items, name, style, title=None, vertical=True, prefix='', tooltip_direction='right') %}
-{#    <label for="group-{{ name }}">{{ title }}</label>#}
     <div class="btn-group{% if vertical %}-vertical{% endif %} btn-group-toggle w-100" data-toggle="buttons"
          id="group-{{ name }}">
         {{ prefix | safe }}
-{#        {% if values is mapping %}#}
+
             {% for key, value, description in items %}
                 <label class="btn {{ style }}" data-toggle="tooltip" data-placement="{{ tooltip_direction }}"
                        data-trigger="hover" title="{{ description }}">
                     <input type="radio" name="{{ name }}" id="{{ name }}-{{ key }}" value="{{ key }}">{{ value }}
                 </label>
             {% endfor %}
-{#        {% else %}#}
-{#            {% for value in values %}#}
-{#                <label class="btn {{ style }}">#}
-{#                    <input type="radio" name="{{ name }}" id="{{ name }}-{{ value }}" value="{{ value }}">{{ value | capitalize }}#}
-{#                </label>#}
-{#            {% endfor %}#}
-{#        {% endif %}#}
     </div>
 {% endmacro %}

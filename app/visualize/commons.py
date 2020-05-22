@@ -15,7 +15,6 @@ def load_embeddings(path: Path, n_tracks=None, dimensions=None):
     if n_tracks is not None:
         embedding_files = embedding_files[:n_tracks]
 
-    print(dimensions)
     if dimensions is None:
         embeddings = [np.load(str(embedding_file)) for embedding_file in embedding_files]
     else:
