@@ -3,3 +3,17 @@
         <a class="nav-link" href="/{{ link }}">{{ name }}</a>
     </li>
 {% endmacro %}
+
+{% macro radio_buttons(items, name, style, title=None, vertical=True, prefix='', tooltip_direction='right') %}
+    <div class="btn-group{% if vertical %}-vertical{% endif %} btn-group-toggle w-100" data-toggle="buttons"
+         id="group-{{ name }}">
+        {{ prefix | safe }}
+
+            {% for key, value, description in items %}
+                <label class="btn {{ style }}" data-toggle="tooltip" data-placement="{{ tooltip_direction }}"
+                       data-trigger="hover" title="{{ description }}">
+                    <input type="radio" name="{{ name }}" id="{{ name }}-{{ key }}" value="{{ key }}">{{ value }}
+                </label>
+            {% endfor %}
+    </div>
+{% endmacro %}

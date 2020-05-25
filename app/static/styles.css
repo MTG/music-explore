@@ -10,3 +10,8 @@ body {
     height: 100px;
     font-size: 48px;
 }
+
+.vertical-text {
+    transform: rotate(90deg);
+    transform-origin: left top 0;
+}

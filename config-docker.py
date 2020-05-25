@@ -4,10 +4,8 @@ import os
 ENV = 'production'
 DEBUG = False
 
-# Data
+# Data, expects directories in format {dataset}-{model}-{layer}[-pca]
 DATA_DIR = '/data/'
-EMBEDDINGS_DIR = DATA_DIR
-USE_PRECOMPUTED_PCA = True
 
 # Audio
 SERVE_AUDIO_LOCALLY = False  # if True make sure to mount /app/static/audio

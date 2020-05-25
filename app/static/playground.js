@@ -15,41 +15,38 @@ let playAudio = function (trackId) {
     });
 };
 
-let getTags = function (cb) {
-    $.ajax({
-        url: '/tags',
-        type: 'GET',
-        contentType: 'application/json;charset=UTF-8',
-        dataType: 'json',
-        success: function (data) {
-            console.log('Got tags');
-            cb(data);
-        }
-    });
-};
-
 let stopAudio = function () {
     let audio = $('#audio')[0];
     audio.pause();
 };
 
-let currentSelectorValue = function (name) {
+
+// TODO: replace as many calls to current as possible with parameter passing
+// return the current value of the selector
+let current = function (name) {
     return $('input[name=' + name + ']:checked').val();
 };
 
-let selectingTags = function () {
-    return (currentSelectorValue('embeddings-type') === 'taggrams') && (currentSelectorValue('projection-type') === 'original');
-};
+// let selectingTags = function () {
+//     return (current('layer') === 'taggrams') && (current('projection') === 'original');
+// };
+
 
 let loadPlot = function (animate) {
     console.log('Loading plot');
 
+    // TODO: replace this with form submit
     let nTracks = $('#n-tracks').val();
-    let dataType = currentSelectorValue('data-type');
-    let embeddingsType = currentSelectorValue('embeddings-type');
-    let projectionType = currentSelectorValue('projection-type');
-    let dimX = $('#dim-x').val();
-    let dimY = $('#dim-y').val();
+    let dataType = current('data-type');
+    let dataset = current('dataset');
+    let model = current('model');
+    let layer = current('layer');
+    let projection = current('projection');
+    let dims = getCurrentDims(layer, projection);
+    if (!dims) {
+        alert('Please select 2 dimensions');
+        return;
+    }
 
     let refreshButton = $('#btn-refresh');
     let refreshButtonSpinner = $('#btn-refresh-spinner');
@@ -59,9 +56,8 @@ let loadPlot = function (animate) {
     refreshButtonSpinner.show();
 
     $.ajax({
-        url: '/plot/' + dataType + '/' + embeddingsType + '/' + nTracks + '/' + projectionType + '/' + dimX + "/" + dimY,
         type: 'GET',
-        contentType: 'application/json;charset=UTF-8',
+        url: '/plot/' + dataType + '/' + dataset + '/' + model + '/' + layer + '/' + nTracks + '/' + projection + '/' + dims[0] + "/" + dims[1],
         dataType: 'json',
         success: function (data) {
             console.log('Got plot data:');
@@ -69,12 +65,13 @@ let loadPlot = function (animate) {
             refreshButton.removeClass('disabled');
             refreshButtonSpinner.hide();
 
-            localStorage.setItem('data-type', dataType);
-            localStorage.setItem('embeddings-type', embeddingsType);
             localStorage.setItem('n-tracks', nTracks);
-            localStorage.setItem('projection-type', projectionType);
-            localStorage.setItem('dim-x', dimX);
-            localStorage.setItem('dim-y', dimY);
+            localStorage.setItem('data-type', dataType);
+            localStorage.setItem('model', model);
+            localStorage.setItem('dataset', dataset);
+            localStorage.setItem('layer', layer);
+            localStorage.setItem('projection', projection);
+            saveDims(dims);
 
             // TODO: set animate appropriately
             animate = false;
@@ -95,26 +92,11 @@ let loadPlot = function (animate) {
             let error = data.responseJSON.error;
             console.log('Error: ' + error);
             alert(error);
+
+            refreshButton.removeClass('disabled');
+            refreshButtonSpinner.hide();
         }
     });
-};
-
-
-let initSelector = function (name, defaultValue, set = false) {
-    let value = localStorage.getItem(name);
-    value = value || defaultValue;
-    $('input[name="' + name + '"][value="' + value + '"]').closest('.btn').button('toggle');
-    if (set) {
-        localStorage.setItem(name, value)
-    }
-    return value
-};
-
-
-let initInput = function (id, defaultValue) {
-    let value = localStorage.getItem(id);
-    value = value || defaultValue;
-    $('#' + id).val(value);
 };
 
 let plotEventHandler = function (data) {
@@ -133,9 +115,9 @@ let changeAudioBind = function (value, init) {
     }
 
     let event = null;
-    if (value === 'on-hover') {
+    if (value === 'hover') {
         event = 'plotly_hover';
-    } else if (value === 'on-click') {
+    } else if (value === 'click') {
         event = 'plotly_click';
     }
 
@@ -146,43 +128,198 @@ let changeAudioBind = function (value, init) {
     localStorage.setItem('audio', value)
 };
 
-const dimensionControlIds = ['#dim-x', '#dim-y'];
+let getMetadata = function (cb) {
+    $.ajax({
+        url: '/metadata',
+        type: 'GET',
+        contentType: 'application/json;charset=UTF-8',
+        dataType: 'json',
+        success: function (data) {
+            console.log('Got metadata');
+            cb(data);
+        }
+    });
+};
 
-let setDimensionMax = function (embeddingsType) {
-    let max = null;
-    if (embeddingsType === 'penultimate') {
-        max = 199;
-    } else if (embeddingsType === 'taggrams') {
-        max = 49;
+// either disable or enable selector
+let updateSelector = function (element, show=true, other) {
+    if (element.prop('disabled') && show) {
+        element.prop('disabled', false).parent().removeClass('disabled');
+    } else if (!element.prop('disabled') && !show) {  // disable
+        if (element.prop('checked')) {
+            other.parent().button('toggle');
+        }
+        element.prop('disabled', true).parent().addClass('disabled');
     }
-    console.log('Changing dimension max: ' + max);
+};
 
-    for (const id of dimensionControlIds) {
-        $(id).attr('max', max)
+let updateSelectors = function (name, modelEntities, allEntities) {
+    let firstElement = null;
+
+    for (const entity of modelEntities) {
+        let element = $('#' + name + '-' + entity);
+        updateSelector(element, true);
+        firstElement = firstElement || element;
+    }
+    for (const entity of allEntities) {
+        if (!(modelEntities.includes(entity))) {
+            updateSelector($('#' + name + '-' + entity), false, firstElement);
+        }
     }
 };
 
 
-$(function () {
-    initSelector('data-type', 'trajectories');
-    let embeddingsType = initSelector('embeddings-type', 'penultimate');
-    setDimensionMax(embeddingsType);
-    initSelector('projection-type', 'pca');
-    initInput('n-tracks', 10);
-    initInput('dim-x', 0);
-    initInput('dim-y', 1);
+let updateDropdown = function (elementDropdown, populate) {
+    elementDropdown.empty();
+    elementDropdown.prop('title', 'Tags')
+    populate();
+    elementDropdown.selectpicker('refresh');
+    elementDropdown.selectpicker('show');
+    elementDropdown.selectpicker('val', getSavedDims());
+};
 
-    loadPlot(false);
 
-    // hide custom projection controls on tsne
-    $('input[name="projection-type"]').change(function () {
-        $('#projection-controls')[0].hidden = this.value === 'tsne';
+let updateNumbers = function (elementNumbers, max) {
+    let savedDims = getSavedDims();
+    ['x', 'y'].forEach(function (axis, i) {
+        $('#dim-'+axis).attr('max', max).attr('data-original-title',
+            'embeddings layer index for ' + axis + '-axis (0~' + max + ')').val(savedDims[i]);
     });
+    elementNumbers.show();
+};
 
 
-    // limit dimensions
-    $('input[name="embeddings-type"]').change(function () {
-        setDimensionMax(this.value)
+let getSavedDims = function () {
+    let dimensions = JSON.parse(localStorage.getItem('dimensions'));
+    return dimensions[current('model')][current('dataset')][current('layer')][current('projection')]
+};
+
+let saveDims = function (dimensions) {
+    let savedDimensions = JSON.parse(localStorage.getItem('dimensions'));
+    savedDimensions[current('model')][current('dataset')][current('layer')][current('projection')] = dimensions;
+    localStorage.setItem('dimensions', JSON.stringify(savedDimensions))
+}
+
+let updateDimSelector = function (metadata) {
+    let currentProjection = current('projection');
+    let currentLayer = current('layer');
+
+    let elementDropdown = $('#selector-dropdown');
+    let elementNumbers = $('#selector-numbers');
+
+    elementDropdown.selectpicker('hide');
+    elementNumbers.hide();
+
+    if (currentProjection === 'original') {
+        if (currentLayer === 'taggrams') {
+            updateDropdown(elementDropdown, function () {
+                let tags = metadata['datasets'][current('dataset')]['tags'];
+                tags.forEach(function (tag, i) {
+                    elementDropdown.append('<option value="' + i + '" data-subtext="' + i + '">' + tag + '</option>');
+                });
+            });
+        } else if (currentLayer === 'embeddings') {
+            let currentModel = current('model')
+            updateNumbers(elementNumbers, metadata['models'][currentModel]['embeddings'] - 1)
+        }
+    } else if (currentProjection === 'pca') {
+        updateDropdown(elementDropdown, function () {
+            for (let i=0; i < 6; i++) {  // TODO: get PCA percentages from server
+                elementDropdown.append('<option value="' + i + '">PC' + (i+1) + '</option>');
+            }
+        });
+    }
+};
+
+let getCurrentDims = function (layer, projection) {
+    if (projection === 'tsne') {
+        return [0, 1]
+    }
+    if (layer === 'embeddings' && projection === 'original') {
+        return [$('#dim-x').val(), $('#dim-y').val()]
+    }
+    let dims = $('#selector-dropdown').val().map((x) => parseInt(x));
+    if (dims.length === 2) {
+        return dims
+    }
+    return false;
+}
+
+let initSelector = function (name, defaultValue, set = false) {
+    let value = localStorage.getItem(name);
+    value = value || defaultValue;
+    $('#' + name + '-' + value).parent().button('toggle');
+    if (set) {
+        localStorage.setItem(name, value)
+    }
+    return value
+};
+
+let initInput = function (id, defaultValue) {
+    let value = localStorage.getItem(id);
+    value = value || defaultValue;
+    $('#' + id).val(value);
+};
+
+let initDims = function (metadata, defaultValue) {
+    let dimensions = localStorage.getItem('dimensions');
+    dimensions = JSON.parse(dimensions) || {}
+    // TODO: make it better? cascade of fors looks horible.. maybe add semantics
+    for (const model in metadata['models']) {
+        dimensions[model] = dimensions[model] || {}
+        for (const dataset of metadata['models'][model]['datasets']) {
+            dimensions[model][dataset] = dimensions[model][dataset] || {};
+            for (const layer of metadata['models'][model]['layers']) {
+                dimensions[model][dataset][layer] = dimensions[model][dataset][layer] || {};
+                for (const projection of ['original', 'pca']) {
+                    dimensions[model][dataset][layer][projection] = dimensions[model][dataset][layer][projection] || defaultValue;
+                }
+            }
+        }
+    }
+    localStorage.setItem('dimensions', JSON.stringify(dimensions));
+}
+
+$(function () {
+    // init Bootstrap/Popper tooltips
+    $('[data-toggle="tooltip"]').tooltip();
+
+    // make sure that proper options are disabled dynamically
+    getMetadata(function (metadata) {
+        // TODO: save selections in the hierarchical way?
+
+        for (const model in metadata['models']) {
+            $('#model-' + model).change(function () {
+                let modelDatasets = metadata['models'][model]['datasets']
+                updateSelectors('dataset', modelDatasets, Object.keys(metadata['datasets']))
+
+                let modelLayers = metadata['models'][model]['layers']
+                updateSelectors('layer', modelLayers, ['embeddings', 'taggrams'])
+
+                updateDimSelector(metadata);
+            });
+        }
+
+        let func = function () {
+            updateDimSelector(metadata);
+        };
+
+        $('input[name=dataset]').change(func);
+        $('input[name=layer]').change(func);
+        $('input[name=projection]').change(func);
+
+        initInput('n-tracks', 10);
+        initSelector('data-type', 'segments');
+
+        initDims(metadata, [0, 1])
+
+        initSelector('model', 'musicnn');
+        initSelector('dataset', 'mtt');
+        initSelector('layer', 'taggrams');
+        initSelector('projection', 'original');
+
+        loadPlot(false);
+
     });
 
     // submit button bind
@@ -193,64 +330,22 @@ $(function () {
     });
 
     // audio bind functionality
-    initSelector('audio', 'on-hover', true);
+    initSelector('audio', 'hover', true);
     $('input[name=audio]').change(function () {
         console.log('Changing audio bind: ' + this.value);
         changeAudioBind(this.value, false)
     });
 
+    // log-scale interaction
     $('#scale-log').click(function (e) {
         if (e.target.tagName.toUpperCase() === "LABEL") {
             return;
         }
         let type = this.checked ? 'log' : 'linear';
         let plotDiv = $('#plot')[0];
-        Plotly.relayout(plotDiv, {
-            xaxis: {
-                type: type,
-                autorange: true
-            },
-            yaxis: {
-                type: type,
-                autorange: true
-            }
-        });
-        // TODO: keep labels
+        let layout = plotDiv.layout;
+        layout['xaxis']['type'] = type;
+        layout['yaxis']['type'] = type;
+        Plotly.relayout(plotDiv, layout);
     });
-
-    // dimensions popup
-    getTags(function (tags) {
-        let getTooltip = function () {
-            if (currentSelectorValue('projection-type') === 'pca')
-                return '% of total (todo)';
-            if (currentSelectorValue('projection-type') === 'original') {
-                if (currentSelectorValue('embeddings-type') === 'taggrams')
-                    return tags[this.value];
-                if (currentSelectorValue('embedding-type' === 'penultimate'))
-                    return 'not sure'
-                return '?'
-            }
-            return '?'
-        };
-        for (const id of dimensionControlIds) {
-            $(id).popover({
-                placement: 'right',
-                content: getTooltip,
-                trigger: 'focus'
-            });
-            $(id).change(function () {
-                $(this).popover('hide');
-                $(this).popover('show');
-            });
-            // $(id).focusin(function () {
-            //     if (selectingTags()) {
-            //         $(this).popover({placement: 'right', content: tags[this.value]})
-            //     }
-            // });
-            // $(id).focusout(function () {
-            //     $(this).popover('hide')
-            // });
-        }
-    });
-
 });

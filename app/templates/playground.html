@@ -1,122 +1,114 @@
 {% extends 'base.html' %}
+{% from "macros.html" import radio_buttons with context %}
 {% set title = 'Playground' %}
 {% set page = 'playground' %}
 {% block content %}
-    <div class="container">
-        <div class="row">
-            <div class="col-md-2">
-                <form id="controls">
-                    <div class="form-group form-row">
-                        <div class="input-group col-12">
-                            <div class="input-group-prepend">
-                                <label for="n-tracks" class="input-group-text">N</label>
-                            </div>
-                            <input type="number" min="1" class="form-control" id="n-tracks">
+<div class="container">
+    <div class="row">
+        <div class="col-md-2">
+            <form id="controls">
+                {# Number of tracks #}
+                <div class="form-group form-row">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <label for="n-tracks" class="input-group-text">N</label>
                         </div>
+                        <input type="number" min="1" class="form-control" id="n-tracks" data-toggle="tooltip"
+                               data-placement="right" title="Number of audio tracks to show">
                     </div>
+                </div>
 
-                    <div class="form-group form-row">
-                        <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
-                            <label class="btn btn-danger">
-                                <input type="radio" name="data-type" value="averages">Averages
-                            </label>
-                            <label class="btn btn-danger">
-                                <input type="radio" name="data-type" value="segments">Segments
-                            </label>
-                            <label class="btn btn-danger">
-                                <input type="radio" name="data-type" value="trajectories">Trajectories
-                            </label>
-                        </div>
+                <div class="form-group form-row">
+                    {{ radio_buttons([
+                    ('segments', 'Segments', 'Show each segment of a track individually'),
+                    ('trajectories', 'Trajectories', 'Show each track as a line connecting its segments. Best works with t-SNE and N < 10'),
+                    ('averages', 'Averages', 'Show each track as an average of all of its segments. Size of the marker is correlated to variance')],
+                    'data-type', 'btn-danger', 'Data type') }}
+                </div>
+
+                <div class="form-group form-row">
+                    {{ radio_buttons(models, 'model', 'btn-primary', 'Model') }}
+                </div>
+
+                <div class="form-group form-row">
+                    {{ radio_buttons(datasets, 'dataset', 'btn-primary', 'Dataset') }}
+                </div>
+
+                <div class="form-group form-row">
+                    {{ radio_buttons([
+                    ('embeddings', 'Embeddings', 'Show embeddings from the second-to-last layer of neural network'),
+                    ('taggrams', 'Taggrams', 'Show tag activations from the output layer of neural network')],
+                    'layer', 'btn-primary', 'Layer') }}
+                </div>
+
+                <div class="form-group form-row">
+                    {{ radio_buttons([
+                    ('original', 'Original', 'Select 2 tags or embedding layers to visualize on X and Y axis'),
+                    ('pca', 'PCA', 'Select principal components to be visualized'),
+                    ('tsne', 't-SNE', 'Use 2D t-SNE. Best used with N < 50, becomes slow for higher numbers')],
+                    'projection', 'btn-info', 'Projection') }}
+                </div>
+
+                <div class="form-group form-row" id="projection-controls">
+                    <div class="input-group w-100" id="selector-numbers" style="display: none;">
+{#                        <label for="dim-x" hidden>X</label>#}
+                        <input type="number" class="form-control" min="0" id="dim-x" value="0" placeholder="X"
+                               data-toggle="tooltip" data-placement="top" data-trigger="hover" title="test">
+{#                        <label for="dim-y" hidden>Y</label>#}
+                        <input type="number" class="form-control" min="0" id="dim-y" value="1" placeholder="Y"
+                               data-toggle="tooltip" data-placement="top" data-trigger="hover" title="test">
                     </div>
+                    <select class="selectpicker" id="selector-dropdown" multiple data-max-options="2"
+                            data-live-search="true" data-width="100%" data-size="18" style="display: none;">
+                    </select>
+                </div>
 
-                    <div class="form-group form-row">
-                        <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
-                            <label class="btn btn-info">
-                                <input type="radio" name="embeddings-type" value="penultimate">Penultimate (200)
-                            </label>
-                            <label class="btn btn-info">
-                                <input type="radio" name="embeddings-type" value="taggrams">Taggrams (50)
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="form-group form-row">
-                        <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
-                            <label class="btn btn-secondary">
-                                <input type="radio" name="projection-type" value="pca">PCA
-                            </label>
-                            <label class="btn btn-secondary">
-                                <input type="radio" name="projection-type" id="projection-tsne" value="tsne">T-SNE
-                            </label>
-                            <label class="btn btn-secondary">
-                                <input type="radio" name="projection-type" value="original">Original
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="form-group form-row" id="projection-controls">
-                        <div class="col-12">
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <label for="dim-x" class="input-group-text">X</label>
-                                </div>
-                                <input type="number" class="form-control" min="0" max="200" id="dim-x" value="0">
-                            </div>
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <label for="dim-y" class="input-group-text">Y</label>
-                                </div>
-                                <input type="number" class="form-control" min="0" max="200" id="dim-y" value="1">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group form-row justify-content-center">
-                        <button id="btn-refresh" type="submit" class="btn btn-primary">
-                            Reload
-                            <span id="btn-refresh-spinner" class="spinner-border spinner-border-sm" role="status"
-                                  aria-hidden="true" style="display: none;"></span>
-                        </button>
-                    </div>
-
-                    <div class="form-group form-row">
-                        <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
-                            <label class="btn btn-success">
-                                <input type="radio" id="audio-on-hover" name="audio" value="on-hover">Hover
-                            </label>
-                            <label class="btn btn-success">
-                                <input type="radio" id="audio-on-click" name="audio" value="on-click">Click
-                            </label>
-                            <label class="btn btn-success">
-                                <input type="radio" id="audio-disabled" name="audio" value="disabled">Disabled
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="form-group form-row">
-                        <div class="btn-group-toggle col-12" data-toggle="buttons">
-                            <label class="btn btn-light form-control">
-                                <input type="checkbox" id="scale-log" autocomplete="off">Log-scale
-                            </label>
-                        </div>
-                    </div>
-
-                </form>
-            </div>
-
-            <div class="col-md-10">
-                <div id="plot" class="plot justify-content-center"></div>
-            </div>
+                <div class="form-group form-row justify-content-center">
+                    <button id="btn-refresh" type="submit" class="btn btn-success">
+                        Reload
+                        <span id="btn-refresh-spinner" class="spinner-border spinner-border-sm" role="status"
+                              aria-hidden="true" style="display: none;"></span>
+                    </button>
+                </div>
+            </form>
         </div>
 
-        <div class="row justify-content-center">
-            <audio id="audio" controls>
-                <source id="audio-source" type="audio/mpeg">
-            </audio>
+        <div class="col-md-10">
+            <div id="plot" class="plot justify-content-center"></div>
+
+            <div class="form-row justify-content-between">
+                <div class="form-group col-md-auto">
+                    <div class="btn-group-toggle col-12" data-toggle="buttons">
+                        <label class="btn btn-outline-secondary form-control" data-toggle="tooltip"
+                               data-placement="right" data-trigger="hover"
+                               title="Use log scale for both axes, useful when data is clustered to the axes">
+                            <input type="checkbox" id="scale-log" autocomplete="off">Log-scale
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group col-md-auto">
+                    {% set prefix_music = '<div class="input-group-prepend"><div class="input-group-text"
+                    id="btnGroupAddon"><i class="fas fa-music"></i></div></div>'%}
+                    {{ radio_buttons([
+                    ('hover', 'Hover', 'Play audio when you hover over points'),
+                    ('click', 'Click', 'Play audio when you click on points'),
+                    ('disabled', 'Disabled', 'Don\'t play audio')],
+                    'audio', 'btn-outline-secondary', 'Play audio on', vertical=False, prefix=prefix_music,
+                    tooltip_direction='top') }}
+                </div>
+            </div>
+
+            <div class="row justify-content-center">
+                <audio id="audio" controls>
+                    <source id="audio-source" type="audio/mpeg">
+                </audio>
+            </div>
         </div>
     </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
-    <script src="{{ url_for('static', filename='playground.js') }}"></script>
+<script src="{{ url_for('static', filename='playground.js') }}"></script>
 {% endblock %}

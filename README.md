@@ -15,7 +15,7 @@ cp config-example.py instance/config.py
 ```
 
 Edit the config:
-* Point the `EMBEDDINGS_DIR` to the directory with `penultimate` and `taggrams` embeddings
+* Point the `DATA_DIR` to the directory with `embeddings` and `taggrams` directory
 
 If you want to serve audio from local server create a soft link `app/static/audio` pointing to audio folder and change  
 `SERVE_AUDIO_LOCALLY` to `True`. Otherwise register an app in [Jamendo Dev portal](https://devportal.jamendo.com/) and 
@@ -66,13 +66,21 @@ pip install --upgrade pip wheel
 pip install -f https://essentia.upf.edu/python-wheels/ essentia-tensorflow  # install essentia-tensorflow
 pip install tqdm  # install other dependencies
 wget https://essentia.upf.edu/models/autotagging/mtt/mtt-musicnn.pb  # download the model
-python scripts/process_essentia.py /path/to/audio/ /path/to/embeddings/ musicnn mtt-musicnn.pb --layer=model/dense/BiasAdd  # process audio
+python scripts/process_essentia.py /path/to/audio /path/to/embeddings/mtt-musicnn-taggrams musicnn mtt-musicnn.pb  # extract taggrams
+python scripts/process_essentia.py /path/to/audio /path/to/embeddings/mtt-musicnn-embeddings musicnn mtt-musicnn.pb --layer=model/batch_normalization_10/batchnorm/add_1  # extract taggrams
 ```
+
+Embedding layers for the models:
+| Model   | Layer                                        | Size          |
+|---------|----------------------------------------------|---------------|
+| MusiCNN | model/batch_normalization_10/batchnorm/add_1 | 200           |
+| VGG     | model/flatten/Reshape                        | 2 x 128 = 256 |
+| VGGish  | model/fully_connected/BiasAdd                | 128           |
 
 ### Applying PCA
 
 ```shell script
-python scripts/reduce_offline.py /path/to/embeddings /path/to/embeddings_pca pca
+python scripts/reduce_offline.py /path/to/mtt-musicnn-taggrams /path/to/mtt-musicnn-taggrams-pca pca
 ```
 
 ## Plotting offline *(to be updated)*
