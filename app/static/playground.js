@@ -28,7 +28,7 @@ let current = function (name) {
 };
 
 // let selectingTags = function () {
-//     return (current('layer') === 'taggrams') && (current('projection-type') === 'original');
+//     return (current('layer') === 'taggrams') && (current('projection') === 'original');
 // };
 
 
@@ -41,8 +41,8 @@ let loadPlot = function (animate) {
     let dataset = current('dataset');
     let model = current('model');
     let layer = current('layer');
-    let projectionType = current('projection-type');
-    let dims = getCurrentDims(layer, projectionType);
+    let projection = current('projection');
+    let dims = getCurrentDims(layer, projection);
     if (!dims) {
         alert('Please select 2 dimensions');
         return;
@@ -57,7 +57,7 @@ let loadPlot = function (animate) {
 
     $.ajax({
         type: 'GET',
-        url: '/plot/' + dataType + '/' + dataset + '/' + model + '/' + layer + '/' + nTracks + '/' + projectionType + '/' + dims[0] + "/" + dims[1],
+        url: '/plot/' + dataType + '/' + dataset + '/' + model + '/' + layer + '/' + nTracks + '/' + projection + '/' + dims[0] + "/" + dims[1],
         dataType: 'json',
         success: function (data) {
             console.log('Got plot data:');
@@ -70,7 +70,7 @@ let loadPlot = function (animate) {
             localStorage.setItem('model', model);
             localStorage.setItem('dataset', dataset);
             localStorage.setItem('layer', layer);
-            localStorage.setItem('projection-type', projectionType);
+            localStorage.setItem('projection', projection);
             saveDims(dims);
 
             // TODO: set animate appropriately
@@ -191,17 +191,17 @@ let updateNumbers = function (elementNumbers, max) {
 
 let getSavedDims = function () {
     let dimensions = JSON.parse(localStorage.getItem('dimensions'));
-    return dimensions[current('model')][current('dataset')][current('layer')][current('projection-type')]
+    return dimensions[current('model')][current('dataset')][current('layer')][current('projection')]
 };
 
 let saveDims = function (dimensions) {
     let savedDimensions = JSON.parse(localStorage.getItem('dimensions'));
-    savedDimensions[current('model')][current('dataset')][current('layer')][current('projection-type')] = dimensions;
+    savedDimensions[current('model')][current('dataset')][current('layer')][current('projection')] = dimensions;
     localStorage.setItem('dimensions', JSON.stringify(savedDimensions))
 }
 
 let updateDimSelector = function (metadata) {
-    let currentProjectionType = current('projection-type');
+    let currentProjection = current('projection');
     let currentLayer = current('layer');
 
     let elementDropdown = $('#selector-dropdown');
@@ -210,7 +210,7 @@ let updateDimSelector = function (metadata) {
     elementDropdown.selectpicker('hide');
     elementNumbers.hide();
 
-    if (currentProjectionType === 'original') {
+    if (currentProjection === 'original') {
         if (currentLayer === 'taggrams') {
             updateDropdown(elementDropdown, function () {
                 let tags = metadata['datasets'][current('dataset')]['tags'];
@@ -222,7 +222,7 @@ let updateDimSelector = function (metadata) {
             let currentModel = current('model')
             updateNumbers(elementNumbers, metadata['models'][currentModel]['embeddings'] - 1)
         }
-    } else if (currentProjectionType === 'pca') {
+    } else if (currentProjection === 'pca') {
         updateDropdown(elementDropdown, function () {
             for (let i=0; i < 6; i++) {  // TODO: get PCA percentages from server
                 elementDropdown.append('<option value="' + i + '">PC' + (i+1) + '</option>');
@@ -238,7 +238,7 @@ let getCurrentDims = function (layer, projection) {
     if (layer === 'embeddings' && projection === 'original') {
         return [$('#dim-x').val(), $('#dim-y').val()]
     }
-    let dims = $('#selector-dropdown').val();
+    let dims = $('#selector-dropdown').val().map((x) => parseInt(x));
     if (dims.length === 2) {
         return dims
     }
@@ -306,7 +306,7 @@ $(function () {
 
         $('input[name=dataset]').change(func);
         $('input[name=layer]').change(func);
-        $('input[name=projection-type]').change(func);
+        $('input[name=projection]').change(func);
 
         initInput('n-tracks', 10);
         initSelector('data-type', 'segments');
@@ -316,7 +316,7 @@ $(function () {
         initSelector('model', 'musicnn');
         initSelector('dataset', 'mtt');
         initSelector('layer', 'taggrams');
-        initSelector('projection-type', 'original');
+        initSelector('projection', 'original');
 
         loadPlot(false);
 
@@ -343,16 +343,9 @@ $(function () {
         }
         let type = this.checked ? 'log' : 'linear';
         let plotDiv = $('#plot')[0];
-        Plotly.relayout(plotDiv, {
-            xaxis: {
-                type: type,
-                autorange: true
-            },
-            yaxis: {
-                type: type,
-                autorange: true
-            }
-        });
-        // TODO: keep labels
+        let layout = plotDiv.layout;
+        layout['xaxis']['type'] = type;
+        layout['yaxis']['type'] = type;
+        Plotly.relayout(plotDiv, layout);
     });
 });

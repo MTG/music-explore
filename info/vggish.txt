@@ -82,14 +82,14 @@ vggish/fc2/weights/read
 vggish/fc2/biases
 vggish/fc2/biases/read
 model/vggish/fc2/MatMul
-model/vggish/fc2/BiasAdd
+model/vggish/fc2/BiasAdd  <- penultimate
 model/vggish/fc2/Relu
 fully_connected/weights
 fully_connected/weights/read
 fully_connected/biases
 fully_connected/biases/read
 model/fully_connected/MatMul
-model/fully_connected/BiasAdd   <- penultimate
+model/fully_connected/BiasAdd
 model/fully_connected/Relu
 logits/weights
 logits/weights/read

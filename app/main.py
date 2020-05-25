@@ -85,30 +85,30 @@ def get_audio_url(track_id):
 
 
 @app.route('/plot/<string:plot_type>/<string:dataset>/<string:model>/<string:layer>/<int:n_tracks>/'
-           '<string:projection_type>/<int:x>/<int:y>')
-def plot(plot_type, dataset, model, layer, n_tracks, projection_type, x, y):
+           '<projection>/<int:x>/<int:y>')
+def plot(plot_type, dataset, model, layer, n_tracks, projection, x, y):
     try:
         data_dir = Path(app.config['DATA_DIR'])
         # TODO: validate dataset-model-layer
         embeddings_dir = f'{dataset}-{model}-{layer}'
 
-        if projection_type == 'original':
+        if projection == 'original':
             data_dir /= embeddings_dir
-        elif projection_type in ['pca', 'tsne']:
+        elif projection in ['pca', 'tsne']:
             data_dir /= f'{embeddings_dir}-pca'  # lesser evil so far
         else:
-            raise ValueError(f"Invalid projection_type: {projection_type}, should be 'original', 'pca' or 'tsne'")
+            raise ValueError(f"Invalid projection: {projection}, should be 'original', 'pca' or 'tsne'")
 
-        dimensions = [x, y] if projection_type in ['original', 'pca'] else None
+        dimensions = [x, y] if projection in ['original', 'pca'] else None
         embeddings, names = load_embeddings(data_dir, n_tracks=n_tracks, dimensions=dimensions)
 
         # TODO: try moving tsne to browser
-        if projection_type == 'tsne':
-            embeddings = reduce(embeddings, projection_type, n_dimensions_out=2)
+        if projection == 'tsne':
+            embeddings = reduce(embeddings, projection, n_dimensions_out=2)
 
         figure = get_plotly_fig(embeddings, names, plot_type)
 
-        if projection_type == 'original' and layer == 'taggrams':
+        if projection == 'original' and layer == 'taggrams':
             tags = get_tags()[dataset]
             figure.update_layout(
                 xaxis_title=tags[x],
