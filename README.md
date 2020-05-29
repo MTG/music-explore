@@ -75,7 +75,7 @@ Embedding layers for the models:
 |---------|----------------------------------------------|---------------|
 | MusiCNN | model/batch_normalization_10/batchnorm/add_1 | 200           |
 | VGG     | model/flatten/Reshape                        | 2 x 128 = 256 |
-| VGGish  | model/fully_connected/BiasAdd                | 128           |
+| VGGish  | model/vggish/fc2/BiasAdd                     | 128           |
 
 ### Applying PCA
 
