@@ -106,7 +106,8 @@ def plot(plot_type, dataset, model, layer, n_tracks, projection, x, y):
         if projection == 'tsne':
             embeddings = reduce(embeddings, projection, n_dimensions_out=2)
 
-        figure = get_plotly_fig(embeddings, names, plot_type)
+        segment_length = get_metadata()['models'][model]['segment-length']
+        figure = get_plotly_fig(embeddings, names, plot_type, segment_length)
 
         if projection == 'original' and layer == 'taggrams':
             tags = get_tags()[dataset]

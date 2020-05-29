@@ -5,14 +5,13 @@ from visualize.commons import get_trajectories, get_averages
 
 PLOTLY_MARGINS = dict(l=40, r=0, t=0, b=40)
 PLOTLY_MARKER_SCALE = 10
-SEGMENT_LENGTH = 3
 
 
-def get_trajectories_plotly(embeddings_2d, names):
+def get_trajectories_plotly(embeddings_2d, names, segment_length):
     trajectories, lengths = get_trajectories(embeddings_2d)
     fig = go.Figure()
     for (x, y), name, length in zip(trajectories, names, lengths):
-        ids = list(map(lambda s: f'{name}:{s}:{s + SEGMENT_LENGTH}', np.arange(0, length) * SEGMENT_LENGTH))
+        ids = list(map(lambda s: f'{name}:{s:.2f}:{s + segment_length:.2f}', np.arange(0, length) * segment_length))
         fig.add_trace(go.Scatter(
             x=x,
             y=y,
@@ -26,12 +25,12 @@ def get_trajectories_plotly(embeddings_2d, names):
     return fig
 
 
-def get_segments_plotly(embeddings_2d, names):
+def get_segments_plotly(embeddings_2d, names, segment_length):
     embeddings_stacked = np.vstack(embeddings_2d)
     trajectories, lengths = get_trajectories(embeddings_2d)
     ids = []
     for name, length in zip(names, lengths):
-        ids += list(map(lambda s: f'{name}:{s}:{s + SEGMENT_LENGTH}', np.arange(0, length) * SEGMENT_LENGTH))
+        ids += list(map(lambda s: f'{name}:{s:.2f}:{s + segment_length:.2f}', np.arange(0, length) * segment_length))
 
     fig = go.Figure(data=go.Scatter(
         x=embeddings_stacked[:, 0],
@@ -58,13 +57,13 @@ def get_averages_plotly(embeddings_2d, names):
     return fig
 
 
-def get_plotly_fig(embeddings, names, plot_type):
+def get_plotly_fig(embeddings, names, plot_type, segment_length):
     if plot_type == 'averages':
         fig = get_averages_plotly(embeddings, names)
     elif plot_type == 'trajectories':
-        fig = get_trajectories_plotly(embeddings, names)
+        fig = get_trajectories_plotly(embeddings, names, segment_length)
     elif plot_type == 'segments':
-        fig = get_segments_plotly(embeddings, names)
+        fig = get_segments_plotly(embeddings, names, segment_length)
     else:
         raise ValueError(f"Invalid plot_type: {plot_type}, should be 'averages', 'trajectories' or 'segments'")
 

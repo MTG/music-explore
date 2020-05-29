@@ -26,15 +26,18 @@ models:
     datasets: [msd, mtt]
     layers: [taggrams, embeddings]
     embeddings: 200
+    segment-length: 3
   vgg:
     name: VGG
     description: 'Baseline architecture from computer vision, adapted to audio (5 layers, 605k parameters)'
     datasets: [msd, mtt]
     layers: [taggrams, embeddings]
     embeddings: 256
+    segment-length: 3
   vggish:
     name: VGGish
     description: 'Baseline architecture from computer vision, original implementation (5 layers, 62m parameters)'
     datasets: [audioset]
     layers: [embeddings]
     embeddings: 128
+    segment-length: 0.96

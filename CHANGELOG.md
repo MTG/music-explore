@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2020-05-29
+
+### Added
+- Support for different length of segments (for VGGish embeddings)
+
 ## [0.2.0] - 2020-05-25
 
 ### Added
