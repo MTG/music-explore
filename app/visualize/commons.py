@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import numpy as np
-from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA, IncrementalPCA
 from sklearn.manifold import TSNE
 
 EDGE_IGNORE = 0
@@ -24,11 +24,13 @@ def load_embeddings(path: Path, n_tracks=None, dimensions=None):
     return embeddings, names  # list of 2d matrices, list of names
 
 
-def reduce(embeddings, projection_type, n_dimensions_out=None, n_dimensions_in=None, verbose=False):
+def reduce(embeddings, projection_type, n_dimensions_out=None, n_dimensions_in=None, verbose=False, size=None):
     if projection_type == 'tsne':
         projection = TSNE(n_components=n_dimensions_out, random_state=0, verbose=verbose)
     elif projection_type == 'pca':
-        projection = PCA(n_components=n_dimensions_out, random_state=0)
+        projection = PCA(n_components=n_dimensions_out, random_state=0, copy=False)
+    elif projection_type == 'ipca':
+        projection = IncrementalPCA(n_components=n_dimensions_out, random_state=0, batch_size=size)
     else:
         raise ValueError(f'Invalid projection_type: {projection_type}')
 

@@ -6,7 +6,7 @@ from tqdm import tqdm
 import numpy as np
 
 
-def reduce_offline(input_dir, output_dir, projection_type):
+def reduce_offline(input_dir, output_dir, projection_type, size):
     input_dir = Path(input_dir)
 
     embedding_files = sorted(input_dir.rglob('*.npy'))
@@ -19,6 +19,8 @@ def reduce_offline(input_dir, output_dir, projection_type):
     print(f'Applying {projection_type}...')
     if projection_type == 'pca':
         embeddings_reduced = reduce(embeddings, projection_type, verbose=True)
+    elif projection_type == 'ipca':
+        embeddings_reduced = reduce(embeddings, projection_type, verbose=True, size=size)
     elif projection_type == 'tsne':
         embeddings_reduced = reduce(embeddings, projection_type, n_dimensions_in=50, n_dimensions_out=2, verbose=True)
     else:
@@ -40,7 +42,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('input_dir')
     parser.add_argument('output_dir')
-    parser.add_argument('projection_type', choices=['pca', 'tsne'])
+    parser.add_argument('projection_type', choices=['pca', 'ipca', 'tsne'])
+    parser.add_argument('--size', type=int)
     args = parser.parse_args()
 
-    reduce_offline(args.input_dir, args.output_dir, args.projection_type)
+    reduce_offline(args.input_dir, args.output_dir, args.projection_type, args.size)
