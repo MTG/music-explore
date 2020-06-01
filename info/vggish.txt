@@ -82,7 +82,7 @@ vggish/fc2/weights/read
 vggish/fc2/biases
 vggish/fc2/biases/read
 model/vggish/fc2/MatMul
-model/vggish/fc2/BiasAdd  <- penultimate
+model/vggish/fc2/BiasAdd  <- embeddings
 model/vggish/fc2/Relu
 fully_connected/weights
 fully_connected/weights/read

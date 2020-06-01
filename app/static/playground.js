@@ -1,3 +1,15 @@
+let getJamendoMetadata = function (trackId, cb) {
+    $.ajax({
+        url: 'https://api.jamendo.com/v3.0/tracks/?client_id=98c98249&id=' + trackId.split(':')[0],  // TODO: move API key
+        type: 'GET',
+        dataType: 'json',
+        success: function (data) {
+            let trackData = data['results'][0];
+            cb(trackData);
+        }
+    });
+};
+
 let playAudio = function (trackId) {
     $.ajax({
         url: '/jamendo/' + trackId,
@@ -11,6 +23,12 @@ let playAudio = function (trackId) {
             let audio = $('#audio')[0];
             audio.load();
             audio.play();
+            // TODO: only when id changes, and maybe cache
+            getJamendoMetadata(trackId, function (data) {
+                $('#track-info').html(data['artist_name'] + ' - ' + data['name'] +
+                    '&nbsp;<a href="https://jamen.do/t/' + data['id'] +
+                    '" target="_blank"><i class="fas fa-link"></i></a>');
+            });
         }
     });
 };
