@@ -107,8 +107,9 @@ let loadPlot = function (animate) {
             changeAudioBind(localStorage.getItem('audio'), true);
         },
         error: function (data) {
-            let error = data.responseJSON.error;
-            console.log('Error: ' + error);
+            console.log('Error:');
+            console.dir(data);
+            let error = (data.status >= 500) ? 'Server error' : data.responseJSON.error;
             alert(error);
 
             refreshButton.removeClass('disabled');
