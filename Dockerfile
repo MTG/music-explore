@@ -7,3 +7,5 @@ RUN rm -f /app/static/audio
 COPY ./requirements.txt /app/requirements.txt
 COPY config-docker.py /app/instance/config.py
 RUN pip install -r /app/requirements.txt
+# uwsgi log dir
+RUN mkdir -p /var/log/uwsgi

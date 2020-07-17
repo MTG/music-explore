@@ -10,7 +10,7 @@ EDGE_IGNORE = 0
 def load_embeddings(path: Path, n_tracks=None, dimensions=None):
     embedding_files = sorted(path.rglob('*.npy'))
     if len(embedding_files) == 0:
-        raise ValueError(f'No data available, maybe path is wrong: {path}')
+        raise FileNotFoundError(f'No data available, maybe path is wrong: {path}')
 
     if n_tracks is not None:
         embedding_files = embedding_files[:n_tracks]
@@ -30,7 +30,7 @@ def reduce(embeddings, projection_type, n_dimensions_out=None, n_dimensions_in=N
     elif projection_type == 'pca':
         projection = PCA(n_components=n_dimensions_out, random_state=0, copy=False)
     elif projection_type == 'ipca':
-        projection = IncrementalPCA(n_components=n_dimensions_out, random_state=0, batch_size=size)
+        projection = IncrementalPCA(n_components=n_dimensions_out, batch_size=size)
     else:
         raise ValueError(f'Invalid projection_type: {projection_type}')
 

@@ -117,6 +117,8 @@ def plot(plot_type, dataset, model, layer, n_tracks, projection, x, y):
             )
     except ValueError as e:
         return {'error': str(e)}, 400
+    except FileNotFoundError as e:
+        return {'error': str(e)}, 404
 
     return json.dumps(figure, cls=plotly.utils.PlotlyJSONEncoder)
 

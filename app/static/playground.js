@@ -25,9 +25,14 @@ let playAudio = function (trackId) {
             audio.play();
             // TODO: only when id changes, and maybe cache
             getJamendoMetadata(trackId, function (data) {
-                $('#track-info').html(data['artist_name'] + ' - ' + data['name'] +
-                    '&nbsp;<a href="https://jamen.do/t/' + data['id'] +
-                    '" target="_blank"><i class="fas fa-link"></i></a>');
+                let infoDiv = $('#track-info');
+                if (data) {
+                    infoDiv.html(data['artist_name'] + ' - ' + data['name'] +
+                        '&nbsp;<a href="https://jamen.do/t/' + data['id'] +
+                        '" target="_blank"><i class="fas fa-link"></i></a>');
+                } else {
+                    infoDiv.html('');
+                }
             });
         }
     });
@@ -50,6 +55,17 @@ let current = function (name) {
 // };
 
 
+let getErrorMessage = function (status) {
+    if (status >= 500) {
+        return 'Something broke on the server';
+    } if (status === 404) {
+        return 'Data not available';
+    } if (status === 400) {
+        return 'Invalid data was sent to server';
+    }
+    return 'Something went wrong (' + status + ')';
+};
+
 let loadPlot = function (animate) {
     console.log('Loading plot');
 
@@ -62,7 +78,12 @@ let loadPlot = function (animate) {
     let projection = current('projection');
     let dims = getCurrentDims(layer, projection);
     if (!dims) {
-        alert('Please select 2 dimensions');
+        bootbox.alert({
+            message: 'Please select 2 dimensions',
+            backdrop: true,
+            centerVertical: true,
+            size: 'small'
+        });
         return;
     }
 
@@ -107,10 +128,17 @@ let loadPlot = function (animate) {
             changeAudioBind(localStorage.getItem('audio'), true);
         },
         error: function (data) {
-            console.log('Error:');
-            console.dir(data);
-            let error = (data.status >= 500) ? 'Server error' : data.responseJSON.error;
-            alert(error);
+            console.log('Error ' + data.status);
+            if (data.status < 500) {
+                console.dir(data.responseJSON.error);
+            }
+            bootbox.alert({
+                title: "Error",
+                message: getErrorMessage(data.status),
+                backdrop: true,
+                centerVertical: true,
+                size: 'small'
+            });
 
             refreshButton.removeClass('disabled');
             refreshButtonSpinner.hide();
@@ -338,7 +366,6 @@ $(function () {
         initSelector('projection', 'original');
 
         loadPlot(false);
-
     });
 
     // submit button bind
@@ -367,4 +394,5 @@ $(function () {
         layout['yaxis']['type'] = type;
         Plotly.relayout(plotDiv, layout);
     });
+
 });

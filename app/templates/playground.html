@@ -14,7 +14,13 @@
                             <label for="n-tracks" class="input-group-text">N</label>
                         </div>
                         <input type="number" min="1" class="form-control" id="n-tracks" data-toggle="tooltip"
-                               data-placement="right" title="Number of audio tracks to show">
+                               data-placement="top" title="Number of audio tracks to show">
+{#                        <div class="input-group-append btn-group-toggle" data-toggle="buttons">#}
+{#                            <label class="btn btn-outline-secondary form-control" data-toggle="tooltip"#}
+{#                                   data-placement="right" data-trigger="hover" title="Shuffle">#}
+{#                                <input type="checkbox" id="shuffle" autocomplete="off"><i class="fas fa-random"></i>#}
+{#                            </label>#}
+{#                        </div>#}
                     </div>
                 </div>
 
@@ -50,7 +56,7 @@
                 </div>
 
                 <div class="form-group form-row" id="projection-controls">
-                    <div class="input-group w-100" id="selector-numbers" style="display: none;">
+                    <div class="input-group" id="selector-numbers" style="display: none;">
 {#                        <label for="dim-x" hidden>X</label>#}
                         <input type="number" class="form-control" min="0" id="dim-x" value="0" placeholder="X"
                                data-toggle="tooltip" data-placement="top" data-trigger="hover" title="test">
@@ -78,7 +84,7 @@
 
             <div class="form-row justify-content-between">
                 <div class="form-group col-md-auto">
-                    <div class="btn-group-toggle col-12" data-toggle="buttons">
+                    <div class="btn-group-toggle" data-toggle="buttons">
                         <label class="btn btn-outline-secondary form-control" data-toggle="tooltip"
                                data-placement="right" data-trigger="hover"
                                title="Use log scale for both axes, useful when data is clustered to the axes">
