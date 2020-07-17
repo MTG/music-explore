@@ -94,6 +94,22 @@ pip install seaborn==0.10.0 scikit-learn==0.22.1
 python -m visualize.sns
 ```
 
+## License
+
+The code is licensed under [GNU Affero General Public License v3.0](/LICENSE). 
+
+## Citation
+
+When using or referencing this work, please cite the following publication:
+```
+@inproceedings{tovstogan2020web
+  title = {Web Interface for Exploration of Latent and Tag Spaces in Music Auto-Tagging}
+  author = {Philip Tovstogan and Xavier Serra and Dmitry Bogdanov}
+  booktitle = {Machine Learning for Media Discovery Workshop, ML4MD, International Conference on Machine Learning, ICML 2020}
+  year = {2020}
+}
+```
+
 ## Acknowledgments
 
 This project has received funding from the European Union's Horizon 2020 research and innovation programme under the 
