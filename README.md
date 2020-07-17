@@ -102,10 +102,10 @@ The code is licensed under [GNU Affero General Public License v3.0](/LICENSE).
 
 When using or referencing this work, please cite the following publication:
 ```
-@inproceedings{tovstogan2020web
-  title = {Web Interface for Exploration of Latent and Tag Spaces in Music Auto-Tagging}
-  author = {Philip Tovstogan and Xavier Serra and Dmitry Bogdanov}
-  booktitle = {Machine Learning for Media Discovery Workshop, ML4MD, International Conference on Machine Learning, ICML 2020}
+@inproceedings{tovstogan2020web,
+  title = {Web Interface for Exploration of Latent and Tag Spaces in Music Auto-Tagging},
+  author = {Philip Tovstogan and Xavier Serra and Dmitry Bogdanov},
+  booktitle = {Machine Learning for Media Discovery Workshop, ML4MD, International Conference on Machine Learning, ICML 2020},
   year = {2020}
 }
 ```
