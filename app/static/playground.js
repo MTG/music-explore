@@ -311,7 +311,7 @@ let initInput = function (id, defaultValue) {
 let initDims = function (metadata, defaultValue) {
     let dimensions = localStorage.getItem('dimensions');
     dimensions = JSON.parse(dimensions) || {}
-    // TODO: make it better? cascade of fors looks horible.. maybe add semantics
+    // TODO: make it better? cascade of fors looks horrible.. maybe add semantics
     for (const model in metadata['models']) {
         dimensions[model] = dimensions[model] || {}
         for (const dataset of metadata['models'][model]['datasets']) {

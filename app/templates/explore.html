@@ -5,19 +5,18 @@
 <div class="container">
     <div class="row">
         {% for audio_url in audio_urls %}
-            <div class="col">
-                <div>
-                    <audio id="audio" controls style="display: none">
-                        <source id="audio-source" type="audio/mpeg" src="{{ audio_url }}">
-                    </audio>
-
-                    <div class="btn-group-vertical btn-block">
-                        <button type="button" class="btn btn-primary btn-explore"><i class="fas fa-music"></i></button>
-                        <button type="button" class="btn btn-success btn-explore"><i class="fas fa-heart"></i></button>
-                    </div>
+            <div class="col-sm my-4 d-flex justify-content-center">
+                <div class="btn-group w-100" role="group">
+                    <button type="button" class="btn btn-outline-secondary btn-play" audio-url="{{ audio_url }}"><i class="fas fa-music fa-3x"></i></button>
+                    <button type="button" class="btn btn-outline-success btn-like"><i class="fas fa-heart fa-3x"></i></button>
                 </div>
             </div>
         {% endfor %}
     </div>
+    <audio></audio>
 </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='explore.js') }}"></script>
 {% endblock %}
