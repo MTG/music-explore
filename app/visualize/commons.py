@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.decomposition import PCA, IncrementalPCA
 from sklearn.manifold import TSNE
 
-from scripts.analyze import analyze_component_variance
+from scripts.analyze import analyze_component_variance, analyze_data_dimensions
 
 EDGE_IGNORE = 0
 
@@ -41,12 +41,7 @@ def reduce(embeddings, projection_type, n_dimensions_out=None, n_dimensions_in=N
 
     if n_dimensions_in is not None:
         embeddings_stacked = embeddings_stacked[:, :n_dimensions_in]
-
-    print('Dimensions with highest standard deviations:')
-    deviations = embeddings_stacked.std(axis=0)
-    indices = np.argsort(deviations)[::-1]
-    for i, deviation in zip(indices, deviations[indices]):
-        print(f'{i:2}: {deviation:.4f}')
+    analyze_data_dimensions(embeddings_stacked)
 
     embeddings_reduced = projection.fit_transform(embeddings_stacked)
     if projection_type == 'pca' and verbose:
