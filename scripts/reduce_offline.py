@@ -14,7 +14,7 @@ def reduce_offline(input_dir, output_dir, projection_type, size):
         raise RuntimeError(f'The directory is empty: {input_dir}')
 
     print('Loading embeddings...')
-    embeddings = [np.load(str(embedding_file)) for embedding_file in tqdm(embedding_files)]
+    embeddings = [np.load(str(embedding_file)) for embedding_file in tqdm(embedding_files[:1000])]
 
     print(f'Applying {projection_type}...')
     if projection_type == 'pca':
@@ -26,14 +26,14 @@ def reduce_offline(input_dir, output_dir, projection_type, size):
     else:
         raise ValueError(f'Invalid projection_type: {projection_type}')
 
-    print('Saving reduced...')
-    output_dir = Path(output_dir)
-    for embedding_file, data in zip(tqdm(embedding_files), embeddings_reduced):
-        relative_path = embedding_file.relative_to(input_dir)
-        reduced_file = output_dir / relative_path
-        if not reduced_file.exists():
-            reduced_file.parent.mkdir(parents=True, exist_ok=True)
-            np.save(reduced_file, data)
+    # print('Saving reduced...')
+    # output_dir = Path(output_dir)
+    # for embedding_file, data in zip(tqdm(embedding_files), embeddings_reduced):
+    #     relative_path = embedding_file.relative_to(input_dir)
+    #     reduced_file = output_dir / relative_path
+    #     if not reduced_file.exists():
+    #         reduced_file.parent.mkdir(parents=True, exist_ok=True)
+    #         np.save(reduced_file, data)
 
     print('Done!')
 
