@@ -25,4 +25,4 @@ htmlcov/
 instance
 audio
 deploy
-models
+essentia-tf-models
