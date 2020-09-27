@@ -7,7 +7,7 @@ from annoy import AnnoyIndex
 import pandas as pd
 
 
-def build_index(input_dir, embeddings_file, metadata_file, n_dimensions, n_trees, dry=False, n_tracks=None):
+def build_index(input_dir, embeddings_file, csv_file, n_dimensions, n_trees, dry=False, n_tracks=None):
     input_dir = Path(input_dir)
 
     embedding_files = sorted(input_dir.rglob('*.npy'))
@@ -34,18 +34,18 @@ def build_index(input_dir, embeddings_file, metadata_file, n_dimensions, n_trees
         print('Saving index...')
         embeddings_index.save(embeddings_file)
         metadata_index = pd.DataFrame(metadata, columns=['track', 'segment'])
-        metadata_index.to_csv(metadata_file)
+        metadata_index.to_csv(csv_file)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('input_dir')
-    parser.add_argument('embeddings_file')
-    parser.add_argument('metadata_file')
+    parser.add_argument('embeddings_file', help='generated annoy index file name')
+    parser.add_argument('csv_file', help='csv_file that maps the annoy indexes to track_id and segment position')
     parser.add_argument('n_dimensions', type=int)
     parser.add_argument('n_trees', type=int)
     parser.add_argument('--dry', action='store_true')
     parser.add_argument('-n', '--n_tracks', default=None, type=int)
     args = parser.parse_args()
-    build_index(args.input_dir, args.embeddings_file, args.metadata_file, args.n_dimensions, args.n_trees, args.dry,
+    build_index(args.input_dir, args.embeddings_file, args.csv_file, args.n_dimensions, args.n_trees, args.dry,
                 args.n_tracks)

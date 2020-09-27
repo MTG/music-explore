@@ -1,4 +1,4 @@
-VGG
+# VGG
 model/Placeholder
 model/Placeholder_1
 model/ExpandDims/dim

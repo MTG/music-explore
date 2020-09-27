@@ -15,7 +15,8 @@ cp config-example.py instance/config.py
 ```
 
 Edit the config:
-* Point the `DATA_DIR` to the directory with `embeddings` and `taggrams` directory
+* Point the `AUDIO_DIR` to the directory with audio that you want to explore
+
 
 If you want to serve audio from local server create a soft link `app/static/audio` pointing to audio folder and change  
 `SERVE_AUDIO_LOCALLY` to `True`. Otherwise register an app in [Jamendo Dev portal](https://devportal.jamendo.com/) and 
@@ -24,8 +25,9 @@ set `JAMENDO_CLIENT_ID` variable.
 ### Environment
 
 ```shell script
-python3.7 -m venv venv
+python3.8 -m venv venv
 source venv/bin/activate
+pip install --upgrade pip wheel
 pip install -r requirements.txt
 ```
 

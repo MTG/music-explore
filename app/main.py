@@ -10,11 +10,6 @@ from visualize.web import get_plotly_fig
 
 MODELS_DESCRIPTION = 'Model: deep learning architecture'
 
-app = Flask(__name__, instance_relative_config=True)
-app.config.from_pyfile('config.py')
-app.jinja_env.trim_blocks = True
-app.jinja_env.lstrip_blocks = True
-
 
 @app.route('/metadata')
 def get_metadata():

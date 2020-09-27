@@ -22,22 +22,37 @@ datasets:
 models:
   musicnn:
     name: MusiCNN
+    essentia-algorithm: TensorflowPredictMusiCNN
     description: 'Musically-motivated convolutional neural network (6 layers, 790k parameters)'
     datasets: [msd, mtt]
-    layers: [taggrams, embeddings]
-    embeddings: 200
-    segment-length: 3
+    layers:
+      taggrams:
+        name: 'model/Sigmoid'
+        size: 50
+      embeddings:
+        name: 'model/batch_normalization_10/batchnorm/add_1'
+        size: 200
+    segment-length: 3.0
   vgg:
     name: VGG
     description: 'Baseline architecture from computer vision, adapted to audio (5 layers, 605k parameters)'
     datasets: [msd, mtt]
-    layers: [taggrams, embeddings]
-    embeddings: 256
-    segment-length: 3
+    essentia-algorithm: TensorflowPredictMusiCNN
+    layers:
+      taggrams: 'model/Sigmoid'
+        name: 'model/Sigmoid'
+        size: 50
+      embeddings:
+        name: 'model/flatten/Reshape'
+        size: 256
+    segment-length: 3.0
   vggish:
     name: VGGish
     description: 'Baseline architecture from computer vision, original implementation (5 layers, 62m parameters)'
     datasets: [audioset]
-    layers: [embeddings]
-    embeddings: 128
+    essentia-algorithm: TensorflowPredictVGGish
+    layers:
+      embeddings:
+        name: 'model/vggish/fc2/BiasAdd'
+        size: 128
     segment-length: 0.96
