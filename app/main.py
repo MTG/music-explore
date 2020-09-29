@@ -3,20 +3,9 @@ from pathlib import Path
 
 from flask import Flask, render_template, url_for, g
 import plotly
-import yaml
 
 from visualize.commons import load_embeddings, reduce
 from visualize.web import get_plotly_fig
-
-MODELS_DESCRIPTION = 'Model: deep learning architecture'
-
-
-@app.route('/metadata')
-def get_metadata():
-    if 'metadata' not in g:
-        with open(Path(__file__).parent / 'metadata.yaml') as fp:  # TODO: find better way
-            g.metadata = yaml.safe_load(fp)
-    return g.metadata
 
 
 def get_metadata_dict(entity, attribute='name'):
@@ -28,9 +17,6 @@ def get_metadata_triplets(entity, first='name', second='description'):
     metadata = get_metadata()
     return [(key, value[first], value[second]) for key, value in metadata[entity].items()]
 
-
-def make_triplets(data, description):
-    return [(key, value, description) for key, value in data.items()]
 
 
 @app.route('/tags')

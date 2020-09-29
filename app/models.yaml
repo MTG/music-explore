@@ -39,7 +39,7 @@ models:
     datasets: [msd, mtt]
     essentia-algorithm: TensorflowPredictMusiCNN
     layers:
-      taggrams: 'model/Sigmoid'
+      taggrams:
         name: 'model/Sigmoid'
         size: 50
       embeddings:
