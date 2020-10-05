@@ -32,7 +32,7 @@ models:
       embeddings:
         name: 'model/batch_normalization_10/batchnorm/add_1'
         size: 200
-    segment-length: 3.0
+    segment-length: 3000
   vgg:
     name: VGG
     description: 'Baseline architecture from computer vision, adapted to audio (5 layers, 605k parameters)'
@@ -45,7 +45,7 @@ models:
       embeddings:
         name: 'model/flatten/Reshape'
         size: 256
-    segment-length: 3.0
+    segment-length: 3000
   vggish:
     name: VGGish
     description: 'Baseline architecture from computer vision, original implementation (5 layers, 62m parameters)'
@@ -55,4 +55,4 @@ models:
       embeddings:
         name: 'model/vggish/fc2/BiasAdd'
         size: 128
-    segment-length: 0.96
+    segment-length: 960

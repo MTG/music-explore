@@ -2,7 +2,6 @@ from pathlib import Path
 
 import numpy as np
 from tqdm import tqdm
-import essentia.standard as ess
 import click
 from flask.cli import with_appcontext
 from flask import current_app
@@ -14,6 +13,8 @@ SAMPLE_RATE = 16000
 
 
 def extract(input_dir, output_dir, algorithm, model_file, layer, accumulate=False, dry=False, force=False):
+    import essentia.standard as ess
+
     try:
         algorithm = getattr(ess, algorithm)
     except AttributeError:
@@ -37,6 +38,22 @@ def extract(input_dir, output_dir, algorithm, model_file, layer, accumulate=Fals
                 np.save(embeddings_file, embeddings)
 
 
+def extract_all(models_dir, accumulate=False, dry=False, force=False):
+    app = current_app
+    audio_dir = app.config['AUDIO_DIR']
+    data_root_dir = Path(app.config['DATA_DIR'])
+    models_dir = Path(models_dir)
+
+    models = get_models()
+    for algorithm, dataset_model, layer, layer_name in models.get_combinations():
+        print(f'Extracting {dataset_model}-{layer}')
+        data_dir = data_root_dir / f'{dataset_model}-{layer}'
+        model_file = models_dir / f'{dataset_model}.pb'
+        extract(audio_dir, data_dir, algorithm, model_file, layer_name, accumulate, dry, force)
+
+
+# Entry points
+
 @click.command('extract')
 @click.argument('input_dir', type=click.Path(exists=True))
 @click.argument('output_dir', type=click.Path())
@@ -46,8 +63,7 @@ def extract(input_dir, output_dir, algorithm, model_file, layer, accumulate=Fals
 @click.option('-c', '--accumulate', is_flag=True, help='try to use single Tensorflow session for the whole file')
 @click.option('-d', '--dry', is_flag=True, help='simulate the run, no writing')
 @click.option('-f', '--force', is_flag=True, help='force overwriting of embedding files')
-def extract_command(input_dir, output_dir, algorithm, model_file, layer='model/Sigmoid', accumulate=False, dry=False,
-                    force=False):
+def extract_command(input_dir, output_dir, algorithm, model_file, layer, accumulate, dry, force):
     """Extract embeddings from the .mp3 audio files in INPUT_DIR and save them as .npy files in the OUTPUT_DIR keeping
     similar directory hierarchy"""
     extract(input_dir, output_dir, algorithm, model_file, layer, accumulate, dry, force)
@@ -59,17 +75,7 @@ def extract_command(input_dir, output_dir, algorithm, model_file, layer='model/S
 @click.option('-d', '--dry', is_flag=True, help='simulate the run, no writing')
 @click.option('-f', '--force', is_flag=True, help='force overwriting of embedding files')
 @with_appcontext
-def extract_all_command(models_dir, accumulate=False, dry=False, force=False):
+def extract_all_command(models_dir, accumulate, dry, force):
     """Compute all embeddings according to config file. Expects MODELS_DIR to have all dataset-model files inside named
     accordingly (e.g. mtt-musicnn.pb)"""
-    app = current_app
-    audio_dir = app.config['AUDIO_DIR']
-    data_root_dir = Path(app.config['DATA_DIR'])
-    models_dir = Path(models_dir)
-
-    models = get_models()
-    for algorithm, dataset_model, layer, layer_name in models.get_combinations():
-        click.echo(f'Extracting {dataset_model}-{layer}')
-        data_dir = data_root_dir / f'{dataset_model}-{layer}'
-        model_file = models_dir / f'{dataset_model}.pb'
-        extract(audio_dir, data_dir, algorithm, model_file, layer_name, accumulate, dry, force)
+    extract_all(models_dir, accumulate, dry, force)

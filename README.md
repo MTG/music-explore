@@ -1,6 +1,6 @@
 # Music Exploration
 
-## Development
+## Setup
 
 ### Requirements
 
@@ -9,22 +9,27 @@ Python 3.7+
 ### Config
 
 Copy the config file example to `instance` folder
-```shell script
+```shell
 mkdir instance
 cp config-example.py instance/config.py
 ```
 
 Edit the config:
-* Point the `AUDIO_DIR` to the directory with audio that you want to explore
+* Point the `AUDIO_DIR` to the directory with audio that you want to use as input.
+* Point the `DATA_DIR` to the directory where you would like to store all the embeddings
 
-
-If you want to serve audio from local server create a soft link `app/static/audio` pointing to audio folder and change  
-`SERVE_AUDIO_LOCALLY` to `True`. Otherwise register an app in [Jamendo Dev portal](https://devportal.jamendo.com/) and 
-set `JAMENDO_CLIENT_ID` variable.
+If you want to serve audio from local server create a soft link `app/static/audio` pointing to audio folder and make 
+sure that `SERVE_AUDIO_LOCALLY` is set to `True`. 
+```shell
+ln -s /path/to/your/audio app/static/audio
+```
+NOTE: if you are using [mtg-jamendo-dataset](), you can serve audio directly from Jamendo servers by registering an app 
+in [Jamendo Dev portal](https://devportal.jamendo.com/) and setting `JAMENDO_CLIENT_ID` variable. In this case make 
+sure that SERVE_AUDIO_LOCALLY.
 
 ### Environment
 
-```shell script
+```shell
 python3.8 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip wheel

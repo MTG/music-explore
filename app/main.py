@@ -8,16 +8,6 @@ from visualize.commons import load_embeddings, reduce
 from visualize.web import get_plotly_fig
 
 
-def get_metadata_dict(entity, attribute='name'):
-    metadata = get_metadata()
-    return {key: value[attribute] for key, value in metadata[entity].items()}
-
-
-def get_metadata_triplets(entity, first='name', second='description'):
-    metadata = get_metadata()
-    return [(key, value[first], value[second]) for key, value in metadata[entity].items()]
-
-
 
 @app.route('/tags')
 def get_tags():
@@ -39,15 +29,8 @@ def explore():
     return render_template('explore.html', audio_urls=[get_audio_url(track_id)['url'] for track_id in track_ids])
 
 
-def jamendo_template(track_id):
-    token = app.config["JAMENDO_CLIENT_ID"]
-    if not token:
-        raise EnvironmentError('Jamendo client ID is not set')
-    return f'https://mp3l.jamendo.com/?trackid={track_id}&format=mp31&from=app-{app.config["JAMENDO_CLIENT_ID"]}'
 
 
-def localhost_template(track_id):
-    return url_for('static', filename=f'audio/{int(track_id) % 100:02}/{track_id}.mp3')
 
 
 @app.route('/jamendo/<string:track_id>')
