@@ -11,17 +11,14 @@ def list_files(path: Union[str, Path], wildcard: str) -> List[Path]:
     files = sorted(path.rglob(wildcard))
     if len(files) == 0:
         raise RuntimeError(f'No {wildcard} files found in {path}')
-
     return files
 
 
-def iterate_embeddings(path: Union[str, Path], n_tracks: int = None, n_dimensions: int = None) -> \
-        Generator[Tuple[np.ndarray, Path], None, None]:
-    """Iterates through all embeddings and slices the dimensions: (embeddings, filename)"""
-    embedding_files = list_files(path, '*.npy')
-
-    for embedding_file in tqdm(embedding_files[:n_tracks]):
-        yield np.load(str(embedding_file))[:, :n_dimensions], embedding_file
+def get_embeddings(embedding_files: List[Path], n_dimensions: int = None) -> \
+        Generator[np.ndarray, None, None]:
+    """Iterates through all embeddings and slices the dimensions"""
+    for embedding_file in tqdm(embedding_files):
+        yield np.load(str(embedding_file))[:, :n_dimensions]
 
 
 # check if this one is necessary

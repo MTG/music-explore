@@ -1,5 +1,40 @@
 from flask import g, current_app
 import yaml
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
+class Model:
+    data: dict
+    dataset: str
+    model: str
+    layer: str
+    projection: Optional[str]
+
+    def __repr__(self):
+        suffix = f'-{self.projection}' if self.projection else ''
+        return f'{self.dataset}-{self.model}-{self.layer}' + suffix
+
+    @property
+    def dataset_data(self):
+        return self.data['datasets'][self.dataset]
+
+    @property
+    def model_data(self):
+        return self.data['models'][self.model]
+
+    @property
+    def layer_data(self):
+        return self.model_data['layers'][self.layer]
+
+    # TODO: make sure that there are no issues with references
+    def with_projection(self, projection):
+        self.projection = projection
+        return self
+
+    def without_projection(self):
+        self.projection = None
+        return self
 
 
 class Models:
@@ -17,11 +52,21 @@ class Models:
         return [(key, value['name'], value['description']) for key, value in self.data[collection].items()]
 
     def get_combinations(self):
-        """Returns combinations of algorithm, dataset_model, layer, layer_name"""
+        """Returns combinations of dataset, model, and layer ignoring projections"""
         for model, model_data in self.data['models'].items():
             for dataset in model_data['datasets']:
-                for layer, layer_data in model_data['layers'].items():
-                    yield model_data['essentia-algorithm'], f'{dataset}-{model}', layer, layer_data['name']
+                for layer in model_data['layers']:
+                    yield Model(self.data, dataset, model, layer, projection=None)
+
+    def get_offline_projections(self):
+        """Returns all models that are projections"""
+        for offline_projection in self.data['offline_projections']:
+            for model in self.get_combinations():
+                yield model.with_projection(offline_projection)
+
+    def get_all_offline(self):
+        yield from self.get_combinations()
+        yield from self.get_offline_projections()
 
 
 def get_models():

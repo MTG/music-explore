@@ -56,3 +56,5 @@ models:
         name: 'model/vggish/fc2/BiasAdd'
         size: 128
     segment-length: 960
+
+offline_projections: [pca]

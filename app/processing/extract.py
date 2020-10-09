@@ -13,7 +13,7 @@ SAMPLE_RATE = 16000
 
 
 def extract(input_dir, output_dir, algorithm, model_file, layer, accumulate=False, dry=False, force=False):
-    import essentia.standard as ess
+    import essentia.standard as ess  # to avoid essentia as regular dependency
 
     try:
         algorithm = getattr(ess, algorithm)
@@ -23,13 +23,11 @@ def extract(input_dir, output_dir, algorithm, model_file, layer, accumulate=Fals
     audio_files = list_files(input_dir, '*.mp3')
 
     output_dir = Path(output_dir)
-    if not dry:
-        output_dir.mkdir(exist_ok=True)
 
     for audio_file in tqdm(audio_files):
         relative_path = audio_file.relative_to(input_dir).with_suffix('.npy')
         embeddings_file = output_dir / relative_path
-        if not embeddings_file.exists() or force:
+        if force or not embeddings_file.exists():
             audio = ess.MonoLoader(filename=str(audio_file), sampleRate=SAMPLE_RATE)()
             embeddings = algorithm(graphFilename=model_file, patchHopSize=0, output=layer,
                                    accumulate=accumulate)(audio)
@@ -45,11 +43,16 @@ def extract_all(models_dir, accumulate=False, dry=False, force=False):
     models_dir = Path(models_dir)
 
     models = get_models()
-    for algorithm, dataset_model, layer, layer_name in models.get_combinations():
-        print(f'Extracting {dataset_model}-{layer}')
-        data_dir = data_root_dir / f'{dataset_model}-{layer}'
-        model_file = models_dir / f'{dataset_model}.pb'
-        extract(audio_dir, data_dir, algorithm, model_file, layer_name, accumulate, dry, force)
+    for model in models.get_combinations():
+        print(f'Extracting {model}')
+        extract(
+            audio_dir,
+            data_root_dir / str(model),
+            model.model_data['essentia-algorithm'],
+            models_dir / f'{model.dataset}-{model.model}.pb',
+            model.layer_data['name'],
+            accumulate, dry, force
+        )
 
 
 # Entry points
@@ -57,8 +60,8 @@ def extract_all(models_dir, accumulate=False, dry=False, force=False):
 @click.command('extract')
 @click.argument('input_dir', type=click.Path(exists=True))
 @click.argument('output_dir', type=click.Path())
-@click.option('-a', '--algorithm', help='class name from essentia (e.g. TensorflowPredictMusiCNN)')
-@click.option('-m', '--model-file', type=click.Path(exists=True), help='path to protobuf file')
+@click.argument('algorithm', help='class name from essentia (e.g. TensorflowPredictMusiCNN)')
+@click.argument('model-file', type=click.Path(exists=True), help='path to protobuf file')
 @click.option('-l', '--layer', default='model/Sigmoid', help='name of the layer to extract embeddings')
 @click.option('-c', '--accumulate', is_flag=True, help='try to use single Tensorflow session for the whole file')
 @click.option('-d', '--dry', is_flag=True, help='simulate the run, no writing')
@@ -72,7 +75,7 @@ def extract_command(input_dir, output_dir, algorithm, model_file, layer, accumul
 @click.command('extract-all')
 @click.argument('models_dir', type=click.Path(exists=True))
 @click.option('-c', '--accumulate', is_flag=True, help='try to use single Tensorflow session for the whole file')
-@click.option('-d', '--dry', is_flag=True, help='simulate the run, no writing')
+@click.option('-d', '--dry', is_flag=True, help='simulate the run')
 @click.option('-f', '--force', is_flag=True, help='force overwriting of embedding files')
 @with_appcontext
 def extract_all_command(models_dir, accumulate, dry, force):

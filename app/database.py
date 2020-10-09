@@ -14,9 +14,18 @@ class Track(db.Model):
     segments = relationship('Segment', back_populates='track')
     path = Column(String, index=True)
 
+    def _segments_query(self, session, length):
+        return session.query(Segment).filter_by(track_id=self.id, length=length)
+
     def has_segments(self, session, length):
-        return session.query(Segment).filter_by(track_id=self.id, length=length).first() is not None
-        # TODO: make it more elegant
+        # TODO: make it more elegant if possible
+        return self._segments_query(session, length).first() is not None
+
+    def get_segments(self, session, length):
+        return self._segments_query(session, length).all()
+
+    def get_segment(self, session, length, position):
+        session.query(Segment).filter_by(track_id=self.id, length=length, position=position).first()
 
 
 class Segment(db.Model):
@@ -27,13 +36,14 @@ class Segment(db.Model):
     track_id = Column(Integer, ForeignKey('track.id'))
     track = relationship('Track', back_populates='segments')
     position = Column(Integer)
+    PRECISION = 3
 
     def __repr__(self):
         return f'{self.track_id}:{self.get_time()}'
 
     def get_time(self):
         start, stop = self.get_timestamps()
-        return f'{start:.3}:{stop:.3}'
+        return f'{start:.{self.PRECISION}}:{stop:.{self.PRECISION}}'
 
     def get_timestamps(self):
         """Returns start and end timestamps in seconds"""
@@ -42,11 +52,11 @@ class Segment(db.Model):
 
 @click.command('init-db')
 @with_appcontext
-def init_db():
+def init_db_command():
     db.create_all()
-    click.echo('Created all tables')
+    print('Created all tables')
 
 
 def init_app(app):
     db.init_app(app)
-    app.cli.add_command(init_db)
+    app.cli.add_command(init_db_command)
