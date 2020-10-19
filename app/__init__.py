@@ -1,4 +1,5 @@
 from flask import Flask
+import logging
 
 
 def create_app(test_config=None):
@@ -13,14 +14,19 @@ def create_app(test_config=None):
     else:
         app.config.from_mapping(test_config)
 
+    # logging
+    logging_level = getattr(logging, app.config['LOGGING_LEVEL'])
+    logging.basicConfig(format=app.config['LOGGING_FORMAT'], level=logging_level)
+
     # remove as much of whitespace in the templates as possible
     app.jinja_env.trim_blocks = True
     app.jinja_env.lstrip_blocks = True
 
-    # database binding
+    # database binding and click commands
     from . import database
     database.init_app(app)
 
+    # processing commands
     from . import processing
     processing.init_app(app)
 

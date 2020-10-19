@@ -1,4 +1,5 @@
 from pathlib import Path
+import logging
 
 import numpy as np
 from tqdm import tqdm
@@ -6,8 +7,8 @@ import click
 from flask.cli import with_appcontext
 from flask import current_app
 
-from app.utils import list_files
 from app.models import get_models
+from app.database import Track, db
 
 SAMPLE_RATE = 16000
 
@@ -18,22 +19,24 @@ def extract(input_dir, output_dir, algorithm, model_file, layer, accumulate=Fals
     try:
         algorithm = getattr(ess, algorithm)
     except AttributeError:
-        raise RuntimeError(f'No algorithm {algorithm} in essentia.standard')
+        logging.error(f'No algorithm {algorithm} in essentia.standard')
+        exit(1)
 
-    audio_files = list_files(input_dir, '*.mp3')
-
+    input_dir = Path(input_dir)
     output_dir = Path(output_dir)
 
-    for audio_file in tqdm(audio_files):
-        relative_path = audio_file.relative_to(input_dir).with_suffix('.npy')
-        embeddings_file = output_dir / relative_path
+    for track in tqdm(Track.get_all()):
+        audio_file = input_dir / track.path
+        embeddings_file = output_dir / track.get_embeddings_filename()
         if force or not embeddings_file.exists():
             audio = ess.MonoLoader(filename=str(audio_file), sampleRate=SAMPLE_RATE)()
-            embeddings = algorithm(graphFilename=model_file, patchHopSize=0, output=layer,
+            embeddings = algorithm(graphFilename=str(model_file), patchHopSize=0, output=layer,
                                    accumulate=accumulate)(audio)
             if not dry:
                 embeddings_file.parent.mkdir(parents=True, exist_ok=True)
                 np.save(embeddings_file, embeddings)
+
+    logging.info('Done!')
 
 
 def extract_all(models_dir, accumulate=False, dry=False, force=False):
@@ -44,7 +47,7 @@ def extract_all(models_dir, accumulate=False, dry=False, force=False):
 
     models = get_models()
     for model in models.get_combinations():
-        print(f'Extracting {model}')
+        logging.info(f'Extracting {model}')
         extract(
             audio_dir,
             data_root_dir / str(model),
@@ -60,15 +63,17 @@ def extract_all(models_dir, accumulate=False, dry=False, force=False):
 @click.command('extract')
 @click.argument('input_dir', type=click.Path(exists=True))
 @click.argument('output_dir', type=click.Path())
-@click.argument('algorithm', help='class name from essentia (e.g. TensorflowPredictMusiCNN)')
-@click.argument('model-file', type=click.Path(exists=True), help='path to protobuf file')
+@click.argument('algorithm')
+@click.argument('model-file', type=click.Path(exists=True))
 @click.option('-l', '--layer', default='model/Sigmoid', help='name of the layer to extract embeddings')
 @click.option('-c', '--accumulate', is_flag=True, help='try to use single Tensorflow session for the whole file')
 @click.option('-d', '--dry', is_flag=True, help='simulate the run, no writing')
 @click.option('-f', '--force', is_flag=True, help='force overwriting of embedding files')
+@with_appcontext
 def extract_command(input_dir, output_dir, algorithm, model_file, layer, accumulate, dry, force):
     """Extract embeddings from the .mp3 audio files in INPUT_DIR and save them as .npy files in the OUTPUT_DIR keeping
-    similar directory hierarchy"""
+    similar directory hierarchy. ALGORITHM is a class name from essentia (e.g. TensorflowPredictMusiCNN), MODEL-FILE is
+    a path to a .pb file yhay can be used by that class"""
     extract(input_dir, output_dir, algorithm, model_file, layer, accumulate, dry, force)
 
 

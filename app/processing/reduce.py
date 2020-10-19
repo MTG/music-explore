@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import List
+import logging
 
 from tqdm import tqdm
 import numpy as np
@@ -10,8 +11,8 @@ import click
 from flask.cli import with_appcontext
 from flask import current_app
 
-from app.utils import list_files, get_embeddings
 from app.models import get_models
+from app.database import Track
 
 
 def reduce_pca(embeddings: Iterable[np.ndarray]):
@@ -50,28 +51,26 @@ REDUCE = {
 
 
 def reduce(input_dir, output_dir, projection: str, n_tracks=None, dry=False, force=False):
-    embedding_files = list_files(input_dir, '*.npy')[:n_tracks]
-
-    print(f'Loading embeddings in {input_dir}...')
-    embeddings = get_embeddings(embedding_files)
-
-    print(f'Applying {projection}...')
     try:
-        embeddings_reduced = REDUCE[projection](embeddings)
+        reduce_func = REDUCE[projection]
     except KeyError:
         raise ValueError(f'Invalid projection_type: {projection}')
 
-    print('Saving reduced...')
+    embeddings = Track.get_all_embeddings_from_files(input_dir)[:n_tracks]
+
+    logging.info(f'Applying {projection}...')
+    embeddings_reduced = reduce_func(embeddings)
+
+    logging.info('Saving reduced...')
     if not dry:
         output_dir = Path(output_dir)
-        for embedding_file, data in zip(tqdm(embedding_files), embeddings_reduced):
-            relative_path = embedding_file.relative_to(input_dir)
-            output_file = output_dir / relative_path
+        for track, data in zip(tqdm(Track.get_all()[:n_tracks]), embeddings_reduced):
+            output_file = output_dir / track.get_embeddings_filename()
             if force or not output_file.exists():
                 output_file.parent.mkdir(parents=True, exist_ok=True)
                 np.save(output_file, data)
 
-    print('Done!')
+    logging.info('Done!')
 
 
 def reduce_all(n_tracks=None, dry=False, force=False):
@@ -80,7 +79,7 @@ def reduce_all(n_tracks=None, dry=False, force=False):
 
     models = get_models()
     for model in models.get_offline_projections():
-        print(f'Generating {model}')
+        logging.info(f'Generating {model}')
         reduce(
             data_dir / str(model.without_projection()),
             data_dir / str(model),
@@ -98,6 +97,7 @@ def reduce_all(n_tracks=None, dry=False, force=False):
 @click.option('-n', '--n_tracks', type=int, help='only process limited amount of tracks')
 @click.option('-d', '--dry', is_flag=True, help='simulate the run')
 @click.option('-f', '--force', is_flag=True, help='force overwriting of embedding files')
+@with_appcontext
 def reduce_command(input_dir, output_dir, projection: str, n_tracks, dry, force):
     reduce(input_dir, output_dir, projection, n_tracks, dry, force)
 
@@ -106,5 +106,6 @@ def reduce_command(input_dir, output_dir, projection: str, n_tracks, dry, force)
 @click.option('-n', '--n_tracks', type=int, help='only process limited amount of tracks')
 @click.option('-d', '--dry', is_flag=True, help='simulate the run')
 @click.option('-f', '--force', is_flag=True, help='force overwriting of embedding files')
+@with_appcontext
 def reduce_all_command(n_tracks, dry, force):
     reduce_all(n_tracks, dry, force)

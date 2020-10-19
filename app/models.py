@@ -2,6 +2,8 @@ from flask import g, current_app
 import yaml
 from dataclasses import dataclass
 from typing import Optional
+from copy import copy
+
 
 @dataclass
 class Model:
@@ -29,12 +31,14 @@ class Model:
 
     # TODO: make sure that there are no issues with references
     def with_projection(self, projection):
-        self.projection = projection
-        return self
+        new_model = copy(self)
+        new_model.projection = projection
+        return new_model
 
     def without_projection(self):
-        self.projection = None
-        return self
+        new_model = copy(self)
+        new_model.projection = None
+        return new_model
 
 
 class Models:

@@ -1,8 +1,14 @@
+from pathlib import Path
+from typing import List
+import logging
+
 from sqlalchemy import Column, Integer, String, ForeignKey, exists
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 import click
 from flask.cli import with_appcontext
+import numpy as np
+from tqdm import tqdm
 
 
 db = SQLAlchemy()
@@ -12,20 +18,35 @@ class Track(db.Model):
     __tablename__ = 'track'
     id = Column(Integer, primary_key=True)
     segments = relationship('Segment', back_populates='track')
-    path = Column(String, index=True)
+    path = Column(String, index=True, unique=True)
 
-    def _segments_query(self, session, length):
-        return session.query(Segment).filter_by(track_id=self.id, length=length)
+    def _segments_query(self, length):
+        return db.session.query(Segment).filter_by(track_id=self.id, length=length)
 
-    def has_segments(self, session, length):
+    def has_segments(self, length):
         # TODO: make it more elegant if possible
-        return self._segments_query(session, length).first() is not None
+        return self._segments_query(length).first() is not None
 
-    def get_segments(self, session, length):
-        return self._segments_query(session, length).all()
+    def get_segments(self, length):
+        return self._segments_query(length).all()
 
-    def get_segment(self, session, length, position):
-        session.query(Segment).filter_by(track_id=self.id, length=length, position=position).first()
+    def get_segment(self, length, position):
+        db.session.query(Segment).filter_by(track_id=self.id, length=length, position=position).first()
+
+    def get_embeddings_filename(self) -> Path:
+        return Path(self.path).with_suffix('.npy')
+
+    def get_embeddings_from_file(self, embeddings_dir) -> np.ndarray:
+        path = Path(embeddings_dir) / self.get_embeddings_filename()
+        return np.load(str(path))
+
+    @staticmethod
+    def get_all_embeddings_from_files(embedding_dir) -> List[np.ndarray]:
+        return [track.get_embeddings_from_file(embedding_dir) for track in tqdm(Track.get_all())]
+
+    @staticmethod
+    def get_all():
+        return db.session.query(Track).all()
 
 
 class Segment(db.Model):
@@ -54,7 +75,7 @@ class Segment(db.Model):
 @with_appcontext
 def init_db_command():
     db.create_all()
-    print('Created all tables')
+    logging.info('Created all tables')
 
 
 def init_app(app):
