@@ -45,8 +45,16 @@ class Track(db.Model):
         return [track.get_embeddings_from_file(embedding_dir) for track in tqdm(Track.get_all())]
 
     @staticmethod
-    def get_all():
-        return db.session.query(Track).all()
+    def get_all(limit=None):
+        return db.session.query(Track).limit(limit).all()
+
+    @staticmethod
+    def get_by_id(track_id):
+        return db.session.query(Track).filter(Track.id == track_id).first()
+
+    @property
+    def jamendo_id(self):
+        return Path(self.path).stem
 
 
 class Segment(db.Model):
@@ -57,18 +65,26 @@ class Segment(db.Model):
     track_id = Column(Integer, ForeignKey('track.id'))
     track = relationship('Track', back_populates='segments')
     position = Column(Integer)
-    PRECISION = 3
+    PRECISION = 2
 
     def __repr__(self):
         return f'{self.track_id}:{self.get_time()}'
 
     def get_time(self):
         start, stop = self.get_timestamps()
-        return f'{start:.{self.PRECISION}}:{stop:.{self.PRECISION}}'
+        return f'{start:.{self.PRECISION}f}:{stop:.{self.PRECISION}f}'
 
     def get_timestamps(self):
         """Returns start and end timestamps in seconds"""
         return self.position * self.length / 1000, (self.position + 1) * self.length / 1000
+
+    def get_url_suffix(self):
+        start, end = self.get_timestamps()
+        return f'#t={start:.{self.PRECISION}f},{end:.{self.PRECISION}f}'
+
+    @staticmethod
+    def get_by_id(segment_id):
+        return db.session.query(Segment).filter(Segment.id == segment_id).first()
 
 
 @click.command('init-db')

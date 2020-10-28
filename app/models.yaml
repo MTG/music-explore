@@ -19,7 +19,7 @@ datasets:
     description: 'Trained on AudioSet, 1.8 million audio clips from Youtube annotated with the AudioSet taxonomy'
     tags: []
 
-models:
+architectures:
   musicnn:
     name: MusiCNN
     essentia-algorithm: TensorflowPredictMusiCNN

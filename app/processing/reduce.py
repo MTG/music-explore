@@ -15,6 +15,18 @@ from app.models import get_models
 from app.database import Track
 
 
+def reduce_generic(embeddings: List[np.ndarray], projection, n_input_dimensions=None):
+    """Stacks embeddings into one matrix, performs dimensionality reduction and splits them back. Optionally
+    preprocesses stacked embeddings"""
+
+    embeddings_stacked = np.vstack(embeddings)
+    lengths = list(map(len, embeddings))
+
+    embeddings_reduced = projection.fit_transform(embeddings_stacked[:, :n_input_dimensions])
+
+    return np.split(embeddings_reduced, np.cumsum(lengths)[:-1])
+
+
 def reduce_pca(embeddings: Iterable[np.ndarray]):
     projection = PCA(random_state=0, copy=False)
     return reduce_generic(list(embeddings), projection)
@@ -29,18 +41,6 @@ def reduce_ipca(embeddings: Iterable[np.ndarray], batch_size=None):
     # TODO: finish implementation
     projection = IncrementalPCA(copy=False)
     raise NotImplementedError()
-
-
-def reduce_generic(embeddings: List[np.ndarray], projection, n_input_dimensions=None):
-    """Stacks embeddings into one matrix, performs dimensionality reduction and splits them back. Optionally
-    preprocesses stacked embeddings"""
-
-    embeddings_stacked = np.vstack(embeddings)
-    lengths = list(map(len, embeddings))
-
-    embeddings_reduced = projection.fit_transform(embeddings_stacked[:, :n_input_dimensions])
-
-    return np.split(embeddings_reduced, np.cumsum(lengths)[:-1])
 
 
 REDUCE = {

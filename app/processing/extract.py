@@ -8,7 +8,7 @@ from flask.cli import with_appcontext
 from flask import current_app
 
 from app.models import get_models
-from app.database import Track, db
+from app.database import Track
 
 SAMPLE_RATE = 16000
 
@@ -51,8 +51,8 @@ def extract_all(models_dir, accumulate=False, dry=False, force=False):
         extract(
             audio_dir,
             data_root_dir / str(model),
-            model.model_data['essentia-algorithm'],
-            models_dir / f'{model.dataset}-{model.model}.pb',
+            model.architecture_data['essentia-algorithm'],
+            models_dir / f'{model.dataset}-{model.architecture}.pb',
             model.layer_data['name'],
             accumulate, dry, force
         )

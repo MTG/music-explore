@@ -1,35 +1,50 @@
-from flask import g, current_app
 import yaml
 from dataclasses import dataclass
 from typing import Optional
 from copy import copy
+from pathlib import Path
+import logging
+
+from flask import g, current_app, Blueprint
+from annoy import AnnoyIndex
+import numpy as np
+
+
+bp = Blueprint('models', __name__)
 
 
 @dataclass
 class Model:
     data: dict
     dataset: str
-    model: str
+    architecture: str
     layer: str
     projection: Optional[str]
 
     def __repr__(self):
         suffix = f'-{self.projection}' if self.projection else ''
-        return f'{self.dataset}-{self.model}-{self.layer}' + suffix
+        return f'{self.dataset}-{self.architecture}-{self.layer}' + suffix
 
     @property
     def dataset_data(self):
         return self.data['datasets'][self.dataset]
 
     @property
-    def model_data(self):
-        return self.data['models'][self.model]
+    def architecture_data(self):
+        return self.data['architectures'][self.architecture]
 
     @property
     def layer_data(self):
-        return self.model_data['layers'][self.layer]
+        return self.architecture_data['layers'][self.layer]
 
-    # TODO: make sure that there are no issues with references
+    @property
+    def index_file(self):
+        return Path(current_app.config['INDEX_DIR']) / f'{self}.ann'
+
+    @property
+    def length(self):
+        return self.architecture_data['segment-length']
+
     def with_projection(self, projection):
         new_model = copy(self)
         new_model.projection = projection
@@ -39,6 +54,18 @@ class Model:
         new_model = copy(self)
         new_model.projection = None
         return new_model
+
+    def get_embeddings(self, tracks, dimensions=None):
+        index = AnnoyIndex(self.layer_data['size'], current_app.config['ANNOY_DISTANCE'])
+        index.load(str(self.index_file))
+        embeddings = []
+        for track in tracks:
+            track_embeddings = [index.get_item_vector(segment.id) for segment in track.get_segments(self.length)]
+            track_embeddings = np.array(track_embeddings)
+            if dimensions is not None:
+                track_embeddings = track_embeddings[:, dimensions]
+            embeddings.append(track_embeddings)
+        return embeddings
 
 
 class Models:
@@ -56,11 +83,11 @@ class Models:
         return [(key, value['name'], value['description']) for key, value in self.data[collection].items()]
 
     def get_combinations(self):
-        """Returns combinations of dataset, model, and layer ignoring projections"""
-        for model, model_data in self.data['models'].items():
-            for dataset in model_data['datasets']:
-                for layer in model_data['layers']:
-                    yield Model(self.data, dataset, model, layer, projection=None)
+        """Returns combinations of dataset, architecture, and layer ignoring projections"""
+        for architecture, architecture_data in self.data['architectures'].items():
+            for dataset in architecture_data['datasets']:
+                for layer in architecture_data['layers']:
+                    yield Model(self.data, dataset, architecture, layer, projection=None)
 
     def get_offline_projections(self):
         """Returns all models that are projections"""
@@ -79,3 +106,8 @@ def get_models():
         with current_app.open_resource(models_file) as fp:
             g.models = Models(yaml.safe_load(fp))
     return g.models
+
+
+@bp.route('/metadata')
+def get_metadata():
+    return get_models().data

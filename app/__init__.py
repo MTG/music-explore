@@ -14,7 +14,7 @@ def create_app(test_config=None):
     else:
         app.config.from_mapping(test_config)
 
-    # logging
+    # config our logging
     logging_level = getattr(logging, app.config['LOGGING_LEVEL'])
     logging.basicConfig(format=app.config['LOGGING_FORMAT'], level=logging_level)
 
@@ -29,5 +29,12 @@ def create_app(test_config=None):
     # processing commands
     from . import processing
     processing.init_app(app)
+
+    # blueprints
+    from . import views, plot, providers, models
+    app.register_blueprint(views.bp)
+    app.register_blueprint(plot.bp)
+    app.register_blueprint(providers.bp)
+    app.register_blueprint(models.bp)
 
     return app

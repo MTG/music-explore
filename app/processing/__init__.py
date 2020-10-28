@@ -1,6 +1,3 @@
-import click
-from flask.cli import with_appcontext
-
 from .extract import extract_command, extract_all_command
 from .index_embeddings import index_embeddings_command, index_all_embeddings_command
 from .reduce import reduce_command, reduce_all_command

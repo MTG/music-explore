@@ -10,9 +10,10 @@ let getJamendoMetadata = function (trackId, cb) {
     });
 };
 
-let playAudio = function (trackId) {
+let playAudio = function (entityId) {
+    let entity = current('data-type') === 'averages' ? 'track' : 'segment';
     $.ajax({
-        url: '/jamendo/' + trackId,
+        url: '/audio/' + entity + '/' + entityId,
         type: 'GET',
         contentType: 'application/json;charset=UTF-8',
         dataType: 'json',
@@ -24,16 +25,16 @@ let playAudio = function (trackId) {
             audio.load();
             audio.play();
             // TODO: only when id changes, and maybe cache
-            getJamendoMetadata(trackId, function (data) {
-                let infoDiv = $('#track-info');
-                if (data) {
-                    infoDiv.html(data['artist_name'] + ' - ' + data['name'] +
-                        '&nbsp;<a href="https://jamen.do/t/' + data['id'] +
-                        '" target="_blank"><i class="fas fa-link"></i></a>');
-                } else {
-                    infoDiv.html('');
-                }
-            });
+            // getJamendoMetadata(entityId, function (data) {
+            //     let infoDiv = $('#track-info');
+            //     if (data) {
+            //         infoDiv.html(data['artist_name'] + ' - ' + data['name'] +
+            //             '&nbsp;<a href="https://jamen.do/t/' + data['id'] +
+            //             '" target="_blank"><i class="fas fa-link"></i></a>');
+            //     } else {
+            //         infoDiv.html('');
+            //     }
+            // });
         }
     });
 };
@@ -73,7 +74,7 @@ let loadPlot = function (animate) {
     let nTracks = $('#n-tracks').val();
     let dataType = current('data-type');
     let dataset = current('dataset');
-    let model = current('model');
+    let architecture = current('architecture');
     let layer = current('layer');
     let projection = current('projection');
     let dims = getCurrentDims(layer, projection);
@@ -96,7 +97,7 @@ let loadPlot = function (animate) {
 
     $.ajax({
         type: 'GET',
-        url: '/plot/' + dataType + '/' + dataset + '/' + model + '/' + layer + '/' + nTracks + '/' + projection + '/' + dims[0] + "/" + dims[1],
+        url: '/plot/' + dataType + '/' + dataset + '/' + architecture + '/' + layer + '/' + nTracks + '/' + projection + '/' + dims[0] + "/" + dims[1],
         dataType: 'json',
         success: function (data) {
             console.log('Got plot data:');
@@ -106,7 +107,7 @@ let loadPlot = function (animate) {
 
             localStorage.setItem('n-tracks', nTracks);
             localStorage.setItem('data-type', dataType);
-            localStorage.setItem('model', model);
+            localStorage.setItem('architecture', architecture);
             localStorage.setItem('dataset', dataset);
             localStorage.setItem('layer', layer);
             localStorage.setItem('projection', projection);
@@ -238,12 +239,12 @@ let updateNumbers = function (elementNumbers, max) {
 
 let getSavedDims = function () {
     let dimensions = JSON.parse(localStorage.getItem('dimensions'));
-    return dimensions[current('model')][current('dataset')][current('layer')][current('projection')]
+    return dimensions[current('architecture')][current('dataset')][current('layer')][current('projection')]
 };
 
 let saveDims = function (dimensions) {
     let savedDimensions = JSON.parse(localStorage.getItem('dimensions'));
-    savedDimensions[current('model')][current('dataset')][current('layer')][current('projection')] = dimensions;
+    savedDimensions[current('architecture')][current('dataset')][current('layer')][current('projection')] = dimensions;
     localStorage.setItem('dimensions', JSON.stringify(savedDimensions))
 }
 
@@ -266,8 +267,8 @@ let updateDimSelector = function (metadata) {
                 });
             });
         } else if (currentLayer === 'embeddings') {
-            let currentModel = current('model')
-            updateNumbers(elementNumbers, metadata['models'][currentModel]['embeddings'] - 1)
+            let currentArchitecture = current('architecture')
+            updateNumbers(elementNumbers, metadata['architectures'][currentArchitecture]['embeddings'] - 1)
         }
     } else if (currentProjection === 'pca') {
         updateDropdown(elementDropdown, function () {
@@ -312,14 +313,14 @@ let initDims = function (metadata, defaultValue) {
     let dimensions = localStorage.getItem('dimensions');
     dimensions = JSON.parse(dimensions) || {}
     // TODO: make it better? cascade of fors looks horible.. maybe add semantics
-    for (const model in metadata['models']) {
-        dimensions[model] = dimensions[model] || {}
-        for (const dataset of metadata['models'][model]['datasets']) {
-            dimensions[model][dataset] = dimensions[model][dataset] || {};
-            for (const layer of metadata['models'][model]['layers']) {
-                dimensions[model][dataset][layer] = dimensions[model][dataset][layer] || {};
+    for (const architecture in metadata['architectures']) {
+        dimensions[architecture] = dimensions[architecture] || {}
+        for (const dataset of metadata['architectures'][architecture]['datasets']) {
+            dimensions[architecture][dataset] = dimensions[architecture][dataset] || {};
+            for (const layer in metadata['architectures'][architecture]['layers']) {
+                dimensions[architecture][dataset][layer] = dimensions[architecture][dataset][layer] || {};
                 for (const projection of ['original', 'pca']) {
-                    dimensions[model][dataset][layer][projection] = dimensions[model][dataset][layer][projection] || defaultValue;
+                    dimensions[architecture][dataset][layer][projection] = dimensions[architecture][dataset][layer][projection] || defaultValue;
                 }
             }
         }
@@ -335,13 +336,13 @@ $(function () {
     getMetadata(function (metadata) {
         // TODO: save selections in the hierarchical way?
 
-        for (const model in metadata['models']) {
-            $('#model-' + model).change(function () {
-                let modelDatasets = metadata['models'][model]['datasets']
-                updateSelectors('dataset', modelDatasets, Object.keys(metadata['datasets']))
+        for (const architecture in metadata['architectures']) {
+            $('#architecture-' + architecture).change(function () {
+                let datasets = metadata['architectures'][architecture]['datasets']
+                updateSelectors('dataset', datasets, Object.keys(metadata['datasets']))
 
-                let modelLayers = metadata['models'][model]['layers']
-                updateSelectors('layer', modelLayers, ['embeddings', 'taggrams'])
+                let layers = Object.keys(metadata['architectures'][architecture]['layers'])
+                updateSelectors('layer', layers, ['embeddings', 'taggrams'])
 
                 updateDimSelector(metadata);
             });
@@ -360,7 +361,7 @@ $(function () {
 
         initDims(metadata, [0, 1])
 
-        initSelector('model', 'musicnn');
+        initSelector('architecture', 'musicnn');
         initSelector('dataset', 'mtt');
         initSelector('layer', 'taggrams');
         initSelector('projection', 'original');

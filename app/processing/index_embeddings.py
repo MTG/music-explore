@@ -15,7 +15,7 @@ def index_embeddings(input_dir, index_file, n_dimensions, segment_length, n_tree
                      force=False):
     # TODO: incorporate dry and force flags into database operations
     last_index = 0
-    embeddings_index = AnnoyIndex(n_dimensions, 'euclidean')
+    embeddings_index = AnnoyIndex(n_dimensions, current_app['ANNOY_DISTANCE'])
 
     logging.info(f'Loading embeddings in {input_dir}...')
     for track in tqdm(Track.get_all()[:n_tracks]):
@@ -53,15 +53,14 @@ def index_embeddings(input_dir, index_file, n_dimensions, segment_length, n_tree
 def index_all_embeddings(n_trees=16, n_tracks=None, dry=False, force=False):
     app = current_app
     data_dir = Path(app.config['DATA_DIR'])
-    index_dir = Path(app.config['INDEX_DIR'])
 
     models = get_models()
     for model in models.get_all_offline():
         index_embeddings(
             data_dir / str(model),
-            index_dir / f'{model}.ann',
+            model.index_file,
             model.layer_data['size'],
-            model.model_data['segment-length'],
+            model.architecture_data['segment-length'],
             n_trees, n_tracks, dry, force
         )
 
