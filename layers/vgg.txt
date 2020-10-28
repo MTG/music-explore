@@ -119,7 +119,7 @@ model/flatten/strided_slice/stack_2
 model/flatten/strided_slice
 model/flatten/Reshape/shape/1
 model/flatten/Reshape/shape
-model/flatten/Reshape				<- penultimate
+model/flatten/Reshape				<- embeddings that we use
 model/dropout_4/Identity
 dense/kernel
 dense/kernel/read

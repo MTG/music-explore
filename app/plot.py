@@ -1,6 +1,7 @@
 import json
+from pathlib import Path
 
-from flask import Blueprint
+from flask import Blueprint, current_app
 import plotly.graph_objects as go
 import plotly
 import numpy as np
@@ -103,7 +104,8 @@ def plot(plot_type, dataset, architecture, layer, n_tracks, projection, x, y):
         tracks = Track.get_all(limit=n_tracks)
 
         dimensions = [x, y] if projection in ['original', 'pca'] else None
-        embeddings = model.get_embeddings(tracks, dimensions)
+
+        embeddings = model.get_embeddings_from_annoy(tracks, dimensions)
         if projection == 'tsne':  # TODO: try moving tsne to browser
             embeddings = reduce_tsne(embeddings)
 

@@ -64,7 +64,7 @@ def reduce(input_dir, output_dir, projection: str, n_tracks=None, dry=False, for
     logging.info('Saving reduced...')
     if not dry:
         output_dir = Path(output_dir)
-        for track, data in zip(tqdm(Track.get_all()[:n_tracks]), embeddings_reduced):
+        for track, data in zip(tqdm(Track.get_all(limit=n_tracks)), embeddings_reduced):
             output_file = output_dir / track.get_embeddings_filename()
             if force or not output_file.exists():
                 output_file.parent.mkdir(parents=True, exist_ok=True)

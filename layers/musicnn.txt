@@ -231,7 +231,7 @@ dense/kernel/read
 dense/bias
 dense/bias/read
 model/dense/MatMul
-model/dense/BiasAdd
+model/dense/BiasAdd  <- embeddings from JSON
 model/dense/Relu
 batch_normalization_10/gamma
 batch_normalization_10/gamma/read
@@ -248,7 +248,7 @@ model/batch_normalization_10/batchnorm/mul
 model/batch_normalization_10/batchnorm/mul_1
 model/batch_normalization_10/batchnorm/mul_2
 model/batch_normalization_10/batchnorm/sub
-model/batch_normalization_10/batchnorm/add_1	<- penultimate
+model/batch_normalization_10/batchnorm/add_1	<- embeddings that we use
 model/dropout_1/Identity
 dense_1/kernel
 dense_1/kernel/read

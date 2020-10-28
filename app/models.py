@@ -55,7 +55,7 @@ class Model:
         new_model.projection = None
         return new_model
 
-    def get_embeddings(self, tracks, dimensions=None):
+    def get_embeddings_from_annoy(self, tracks, dimensions=None):
         index = AnnoyIndex(self.layer_data['size'], current_app.config['ANNOY_DISTANCE'])
         index.load(str(self.index_file))
         embeddings = []
@@ -66,6 +66,14 @@ class Model:
                 track_embeddings = track_embeddings[:, dimensions]
             embeddings.append(track_embeddings)
         return embeddings
+
+    def get_embeddings_from_file(self, tracks, dimensions=None):
+        # alternative way of reading from file, is 2x faster
+        embeddings_dir = Path(current_app.config['DATA_DIR']) / str(self)
+        if dimensions is None:
+            return [track.get_embeddings_from_file(embeddings_dir) for track in tracks]
+
+        return [track.get_embeddings_from_file(embeddings_dir)[:, dimensions] for track in tracks]
 
 
 class Models:

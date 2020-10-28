@@ -15,17 +15,18 @@ cp config-example.py instance/config.py
 ```
 
 Edit the config:
-* Point the `AUDIO_DIR` to the directory with audio that you want to use as input.
-* Point the `DATA_DIR` to the directory where you would like to store all the embeddings
+* Point the `ROOT_DIR` to the directory where you want to store all data, ideally with `audio` directory inside having
+ audio files
 
 If you want to serve audio from local server create a soft link `app/static/audio` pointing to audio folder and make 
-sure that `SERVE_AUDIO_LOCALLY` is set to `True`. 
+sure that `AUDIO_PROVIDER` is set to `local`. 
 ```shell
 ln -s /path/to/your/audio app/static/audio
 ```
-NOTE: if you are using [mtg-jamendo-dataset](), you can serve audio directly from Jamendo servers by registering an app 
-in [Jamendo Dev portal](https://devportal.jamendo.com/) and setting `JAMENDO_CLIENT_ID` variable. In this case make 
-sure that SERVE_AUDIO_LOCALLY.
+
+If you are using [mtg-jamendo-dataset](https://github.com/MTG/mtg-jamendo-dataset), you can serve audio directly 
+from Jamendo servers by registering an app in [Jamendo Dev portal](https://devportal.jamendo.com/) and setting 
+`JAMENDO_CLIENT_ID` variable. In this case make sure that `AUDIO_PROVIDER` is set to `jamendo`.
 
 ### Environment
 
@@ -34,17 +35,45 @@ python3.8 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip wheel
 pip install -r requirements.txt
+pip install essentia-tensorflow  # this requirement is only needed for processing the audio, you can uninstall later
 ```
 
-Requirements file doesn't cover requirements for audio processing and offline plotting, see the following sections.
+### Download essentia-tensorflow models
+
+```shell
+mkdir essentia-tf-models
+cd essentia-tf-models
+wget https://essentia.upf.edu/models/autotagging/msd/msd-musicnn-1.pb -O msd-musicnn.pb
+wget https://essentia.upf.edu/models/autotagging/msd/msd-vgg-1.pb -O msd-vgg.pb
+wget https://essentia.upf.edu/models/autotagging/mtt/mtt-musicnn-1.pb -O mtt-musicnn.pb
+wget https://essentia.upf.edu/models/autotagging/mtt/mtt-vgg-1.pb -O mtt-vgg.pb
+wget https://essentia.upf.edu/models/feature-extractors/vggish/audioset-vggish-3.pb -O audioset-vggish.pb
+```
+
+### Process audio
+
+```shell
+flask init-db
+flask index-all-audio
+flask extract-all essentia-tf-models
+flask reduce-all
+flask index-all-embeddings
+```
+
+Embedding layers for the models:
+| Model   | Layer                                        | Size          |
+|---------|----------------------------------------------|---------------|
+| MusiCNN | model/batch_normalization_10/batchnorm/add_1 | 200           |
+| VGG     | model/flatten/Reshape                        | 2 x 128 = 256 |
+| VGGish  | model/vggish/fc2/BiasAdd                     | 128           |
 
 ### Running
 
-```shell script
-python app/main.py
+```shell
+flask run
 ```
 
-## Deploying with Docker
+## Deploying with Docker (to be updated)
 
 - Set `SERVE_AUDIO_LOCALLY` in `config-docker.py` appropriately depending if you want to use Jamendo API or not
 - Build and run docker image with your data mounted at `/data`, it uses port 80 by default
@@ -56,49 +85,6 @@ Example:
 docker build -t music-explore .
 docker run -p 8080:80 -v /path/to/data:/data -v /path/to/audio:/app/static/audio music-explore  # run with local audio
 docker run -p 8080:80 -v /path/to/data:/data --env JAMENDO_CLIENT_ID=XXXXXXXX music-explore  # run with Jamendo API
-```
-
-## Creating data
-
-### Extracting embeddings
-
-To learn more about essentia-tensorflow, see this 
-[blog post](https://mtg.github.io/essentia-labs/news/2020/01/16/tensorflow-models-released/), here are just a list of 
-steps
-
-```shell script
-python -m venv venv_process  # Create separate virtual environment
-source venv_process/bin/activate
-pip install --upgrade pip wheel
-pip install -f https://essentia.upf.edu/python-wheels/ essentia-tensorflow  # install essentia-tensorflow
-pip install tqdm  # install other dependencies
-wget https://essentia.upf.edu/models/autotagging/mtt/mtt-musicnn.pb  # download the model
-python scripts/process_essentia.py /path/to/audio /path/to/embeddings/mtt-musicnn-taggrams musicnn mtt-musicnn.pb  # extract taggrams
-python scripts/process_essentia.py /path/to/audio /path/to/embeddings/mtt-musicnn-embeddings musicnn mtt-musicnn.pb --layer=model/batch_normalization_10/batchnorm/add_1  # extract taggrams
-```
-
-Embedding layers for the models:
-| Model   | Layer                                        | Size          |
-|---------|----------------------------------------------|---------------|
-| MusiCNN | model/batch_normalization_10/batchnorm/add_1 | 200           |
-| VGG     | model/flatten/Reshape                        | 2 x 128 = 256 |
-| VGGish  | model/vggish/fc2/BiasAdd                     | 128           |
-
-### Applying PCA
-
-```shell script
-python scripts/reduce_offline.py /path/to/mtt-musicnn-taggrams /path/to/mtt-musicnn-taggrams-pca pca
-```
-
-## Plotting offline *(to be updated)*
-
-You can make some offline plots with `seaborn`. The requirements are not included in `requirements.txt`, so they need to
-be installed separately. `scikit-learn` is in `requirements.txt`, it is included here if you want to use separate
-virtual environment (recommended)
-
-```shell script
-pip install seaborn==0.10.0 scikit-learn==0.22.1
-python -m visualize.sns
 ```
 
 ## License
