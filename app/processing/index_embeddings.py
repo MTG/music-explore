@@ -7,45 +7,43 @@ from flask.cli import with_appcontext
 from flask import current_app
 from tqdm import tqdm
 
-from app.database import Segment, Track, db
+from app.database import Segmentation, Track, db
 from app.models import get_models
 
 
-def index_embeddings(input_dir, index_file, n_dimensions, segment_length, n_trees=16, n_tracks=None, dry=False,
-                     force=False):
+def index_embeddings(input_dir, index_file, n_dimensions, segment_length, n_trees=16, n_tracks=None, dry=False, force=False):
     # TODO: incorporate dry and force flags into database operations
-    last_index = 0
+    current_index = 0
     embeddings_index = AnnoyIndex(n_dimensions, current_app.config['ANNOY_DISTANCE'])
+    index_file = Path(index_file)
+
+    if index_file.exists() and not force:
+        print(f'Index {index_file} already exists, skipping')
+        return
 
     logging.info(f'Loading embeddings in {input_dir}...')
     for track in tqdm(Track.get_all().limit(n_tracks)):
-        has_segments = track.has_segments(segment_length)
         embeddings = track.get_embeddings_from_file(input_dir)
+        total = len(embeddings)
+
         for i, embedding in enumerate(embeddings):
-            segment_id = last_index + i
-            embeddings_index.add_item(segment_id, embedding)  # annoy
-            if not has_segments:
-                db.session.add(Segment(id=segment_id, length=segment_length, track=track, position=i))
+            embeddings_index.add_item(current_index + i, embedding)  # annoy
 
-        last_index += len(embeddings)
+        # TODO: maybe replace iterative approach with retrieving tracks in the beginning - depending on performance
+        if not track.has_segmentation(segment_length):
+            db.session.add(Segmentation(track=track, length=segment_length, start_id=current_index,
+                                        stop_id=current_index + total))
+            if not dry:
+                db.session.commit()  # add segments on per-track basis
 
-    logging.info('Updating database...')
-    db.session.commit()
+        current_index += total
 
     logging.info('Building index...')
     embeddings_index.build(n_trees, n_jobs=-1)
 
     if not dry:
-        if Path(index_file).exists():
-            if force:
-                print(f'Overwriting {index_file} with new index...')
-                embeddings_index.save(index_file)
-            else:
-                print(f'Index {index_file} already exists, if you want to overwrite it, please use --force')
-        else:
-            print(f'Saving index to {index_file}...')
-            index_file.parent.mkdir(parents=True, exist_ok=True)
-            embeddings_index.save(str(index_file))
+        index_file.parent.mkdir(parents=True, exist_ok=True)
+        embeddings_index.save(str(index_file))
 
     logging.info('Done!')
 
@@ -72,8 +70,8 @@ def index_all_embeddings(n_trees=16, n_tracks=None, dry=False, force=False):
 @click.argument('index_file', type=click.Path())
 @click.argument('n_dimensions', type=int)
 @click.argument('segment_length', type=int)
-@click.option('-t', '--n_trees', type=int, default=16, help='number of trees for the annoy index')
-@click.option('-n', '--n_tracks', type=int, help='only process limited amount of tracks')
+@click.option('-t', '--n-trees', type=int, default=16, help='number of trees for the annoy index')
+@click.option('-n', '--n-tracks', type=int, help='only process limited amount of tracks')
 @click.option('-d', '--dry', is_flag=True, help='simulate the run')
 @click.option('-f', '--force', is_flag=True, help='overwrite annoy index and database entries if they exist')
 @with_appcontext

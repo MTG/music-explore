@@ -70,7 +70,7 @@ Embedding layers for the models:
 ### Running
 
 ```shell
-flask run
+FLASK_ENV=development flask run
 ```
 
 ## Deploying with Docker (to be updated)

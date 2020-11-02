@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import List
 import logging
+from dataclasses import dataclass
 
 from sqlalchemy import Column, Integer, String, ForeignKey, Table
 from flask_sqlalchemy import SQLAlchemy
@@ -33,7 +34,7 @@ class CommonMixin:
 class Track(CommonMixin, db.Model):
     __tablename__ = 'track'
 
-    segments = relationship('Segment', back_populates='track')
+    segmentations = relationship('Segmentation', back_populates='track')
     path = Column(String, index=True, unique=True)
 
     track_metadata = relationship('TrackMetadata', uselist=False, back_populates='track')
@@ -41,18 +42,15 @@ class Track(CommonMixin, db.Model):
     def __repr__(self):
         return f'<Track({self.id}, path={self.path})>'
 
-    def _segments_query(self, length):
-        return db.session.query(Segment).filter_by(track_id=self.id, length=length)
+    # segmentations
 
-    def has_segments(self, length):
-        # TODO: make it more elegant if possible 
-        return self._segments_query(length).first() is not None
+    def has_segmentation(self, length):
+        return self.get_segmentation(length).first() is not None
 
-    def get_segments(self, length):
-        return self._segments_query(length).all()
+    def get_segmentation(self, length):
+        return db.session.query(Segmentation).filter_by(id=self.id, length=length)
 
-    def get_segment(self, length, position):
-        db.session.query(Segment).filter_by(track_id=self.id, length=length, position=position).first()
+    # embeddings without annoy
 
     def get_embeddings_filename(self) -> Path:
         return Path(self.path).with_suffix('.npy')
@@ -65,7 +63,7 @@ class Track(CommonMixin, db.Model):
     def get_all_embeddings_from_files(embedding_dir) -> List[np.ndarray]:
         return [track.get_embeddings_from_file(embedding_dir) for track in tqdm(Track.get_all())]
 
-    @property
+    @property  # TODO: replace with metadata streaming_id
     def jamendo_id(self):
         return Path(self.path).stem
 
@@ -74,17 +72,12 @@ class Track(CommonMixin, db.Model):
         return db.session.query(Track).filter(Track.path == path).first()
 
 
-class Segment(CommonMixin, db.Model):
-    __tablename__ = 'segment'
-
-    length = Column(Integer, primary_key=True)  # in ms
-    position = Column(Integer)
-
-    track_id = Column(Integer, ForeignKey('track.id'))
-    track = relationship('Track', back_populates='segments')
-
-    def __repr__(self):
-        return f'{self.track_id}:{self.get_time()}'
+@dataclass()
+class Segment:
+    id: int
+    length: int
+    position: int
+    track_id: int
 
     @staticmethod
     def _str(time):
@@ -103,6 +96,22 @@ class Segment(CommonMixin, db.Model):
     def get_url_suffix(self):
         start, end = self.get_timestamps()
         return f'#t={self._str(start)},{self._str(end)}'
+
+
+class Segmentation(CommonMixin, db.Model):
+    __tablename__ = 'segmentation'
+    id = Column(Integer, ForeignKey('track.id'), primary_key=True)
+    track = relationship('Track', back_populates='segmentations')
+    length = Column(Integer, primary_key=True)  # in ms
+    start_id = Column(Integer, index=True)
+    stop_id = Column(Integer, index=True)
+
+    def __repr__(self):
+        return f'<Segmentation({self.start_id}:{self.stop_id}, track={self.id}, length={self.length}>'
+
+    def get_segments(self):
+        return [Segment(segment_id, self.length, segment_id - self.start_id, self.id)
+                for segment_id in range(self.start_id, self.stop_id)]
 
 
 track_metadata_tag_table = Table('track_metadata_tag', db.Model.metadata,
