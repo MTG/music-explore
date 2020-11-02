@@ -23,7 +23,7 @@ def load_jamendo_metadata(input_file):
         next(reader, None)  # skip header
 
         session_size = 0
-        for row in tqdm(reader, total=total_rows):
+        for row in tqdm(reader, total=total_rows):  # TODO: investigate why performance slows down
             track_jamendo_id = parse_id(row[0])
             artist_id = parse_id(row[1])
             album_id = parse_id(row[2])

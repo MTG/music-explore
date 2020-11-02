@@ -270,7 +270,7 @@ let updateDimSelector = function (metadata) {
             let currentArchitecture = current('architecture')
             updateNumbers(elementNumbers, metadata['architectures'][currentArchitecture]['embeddings'] - 1)
         }
-    } else if (currentProjection === 'pca') {
+    } else if (currentProjection === 'pca' || currentProjection === 'std-pca') {
         updateDropdown(elementDropdown, function () {
             for (let i=0; i < 6; i++) {  // TODO: get PCA percentages from server
                 elementDropdown.append('<option value="' + i + '">PC' + (i+1) + '</option>');

@@ -95,15 +95,21 @@ def get_plotly_fig(plot_type, embeddings, tracks, model):
 def plot(plot_type, dataset, architecture, layer, n_tracks, projection, x, y):
     try:
         # TODO: maybe validate dataset-model-layer?
-
-        model_projection = None if projection == 'original' else 'pca'
+        if projection == 'original':
+            model_projection = None
+        elif projection == 'tsne':  # t-sne uses pca as input
+            model_projection = 'pca'
+        else:  # 'pca', 's-pca'
+            model_projection = projection
         model = Model(get_models().data, dataset, architecture, layer, model_projection)
 
         tracks = Track.get_all(limit=n_tracks)
 
-        dimensions = [x, y] if projection in ['original', 'pca'] else None
+        dimensions = None if projection == 'tsne' else [x, y] # TODO: load limited amount of dimensions for tsne
 
-        embeddings = model.get_embeddings_from_annoy(tracks, dimensions)
+        # embeddings = model.get_embeddings_from_annoy(tracks, dimensions)
+        embeddings = model.get_embeddings_from_file(tracks, dimensions)
+
         if projection == 'tsne':  # TODO: try moving tsne to browser
             embeddings = reduce_tsne(embeddings)
 

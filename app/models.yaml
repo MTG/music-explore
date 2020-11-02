@@ -57,4 +57,4 @@ architectures:
         size: 128
     segment-length: 960
 
-offline_projections: [pca]
+offline_projections: [pca, std-pca]

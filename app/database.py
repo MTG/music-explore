@@ -51,10 +51,13 @@ class Track(CommonMixin, db.Model):
     # segmentations
 
     def has_segmentation(self, length):
-        return self.get_segmentation(length).first() is not None
+        return self._get_segmentation(length) is not None
 
-    def get_segmentation(self, length):
-        return db.session.query(Segmentation).filter_by(id=self.id, length=length)
+    def _get_segmentation(self, length):
+        return db.session.query(Segmentation).filter_by(id=self.id, length=length).first()
+
+    def get_segments(self, length):
+        return self._get_segmentation(length).get_segments()
 
     # embeddings without annoy
 

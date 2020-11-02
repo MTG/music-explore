@@ -97,15 +97,19 @@ class Models:
                 for layer in architecture_data['layers']:
                     yield Model(self.data, dataset, architecture, layer, projection=None)
 
-    def get_offline_projections(self):
+    def get_offline_projections(self, projection):
+        """Returns all models that with specified projection"""
+        for model in self.get_combinations():
+            yield model.with_projection(projection)
+
+    def get_all_offline_projections(self):
         """Returns all models that are projections"""
-        for offline_projection in self.data['offline_projections']:
-            for model in self.get_combinations():
-                yield model.with_projection(offline_projection)
+        for projection in self.data['offline_projections']:
+            yield from self.get_offline_projections(projection)
 
     def get_all_offline(self):
         yield from self.get_combinations()
-        yield from self.get_offline_projections()
+        yield from self.get_all_offline_projections()
 
 
 def get_models():

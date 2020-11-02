@@ -15,12 +15,17 @@ from app.models import get_models
 from app.database import Track
 
 
-def reduce_generic(embeddings: List[np.ndarray], projection, n_input_dimensions=None):
+def reduce_generic(embeddings: List[np.ndarray], projection, n_input_dimensions=None, preprocess=None):
     """Stacks embeddings into one matrix, performs dimensionality reduction and splits them back. Optionally
     preprocesses stacked embeddings"""
 
     embeddings_stacked = np.vstack(embeddings)
     lengths = list(map(len, embeddings))
+
+    if preprocess is not None:
+        logging.info('Preprocessing...')
+        embeddings_stacked = preprocess(embeddings_stacked)
+        logging.info('Reducing...')
 
     embeddings_reduced = projection.fit_transform(embeddings_stacked[:, :n_input_dimensions])
 
@@ -34,19 +39,23 @@ def reduce_pca(embeddings: Iterable[np.ndarray]):
 
 def reduce_tsne(embeddings: Iterable[np.ndarray]):
     projection = TSNE(n_components=2, random_state=0, verbose=True)
+    # TODO: add n_input_dimension, as we don't need all pca as input to tsne
     return reduce_generic(list(embeddings), projection)
 
 
-def reduce_ipca(embeddings: Iterable[np.ndarray], batch_size=None):
-    # TODO: finish implementation
-    projection = IncrementalPCA(copy=False)
-    raise NotImplementedError()
+def standardize(embeddings_stacked):
+    return (embeddings_stacked - embeddings_stacked.mean(axis=0)) / embeddings_stacked.std(axis=0)
+
+
+def reduce_std_pca(embeddings: Iterable[np.ndarray], batch_size=None):
+    projection = PCA(random_state=0, copy=False)
+    return reduce_generic(list(embeddings), projection, preprocess=standardize)
 
 
 REDUCE = {
     'pca': reduce_pca,
     'tsne': reduce_tsne,
-    'ipca': reduce_ipca
+    'std-pca': reduce_std_pca
 }
 
 
@@ -73,12 +82,17 @@ def reduce(input_dir, output_dir, projection: str, n_tracks=None, dry=False, for
     logging.info('Done!')
 
 
-def reduce_all(n_tracks=None, dry=False, force=False):
+def reduce_all(projection=None, n_tracks=None, dry=False, force=False):
     app = current_app
     data_dir = Path(app.config['DATA_DIR'])
 
     models = get_models()
-    for model in models.get_offline_projections():
+    if projection is not None:
+        projection_models = models.get_offline_projections(projection)
+    else:
+        projection_models = models.get_all_offline_projections()
+
+    for model in projection_models:
         logging.info(f'Generating {model}')
         reduce(
             data_dir / str(model.without_projection()),
@@ -93,8 +107,8 @@ def reduce_all(n_tracks=None, dry=False, force=False):
 @click.command('reduce')
 @click.argument('input_dir', type=click.Path(exists=True))
 @click.argument('output_dir', type=click.Path())
-@click.argument('projection', type=click.Choice(['pca', 'ipca', 'tsne'], case_sensitive=False))
-@click.option('-n', '--n_tracks', type=int, help='only process limited amount of tracks')
+@click.argument('projection', type=click.Choice(REDUCE.keys(), case_sensitive=False))
+@click.option('-n', '--n-tracks', type=int, help='only process limited amount of tracks')
 @click.option('-d', '--dry', is_flag=True, help='simulate the run')
 @click.option('-f', '--force', is_flag=True, help='force overwriting of embedding files')
 @with_appcontext
@@ -103,9 +117,10 @@ def reduce_command(input_dir, output_dir, projection: str, n_tracks, dry, force)
 
 
 @click.command('reduce-all')
-@click.option('-n', '--n_tracks', type=int, help='only process limited amount of tracks')
+@click.option('--projection', type=click.Choice(REDUCE.keys(), case_sensitive=False))
+@click.option('-n', '--n-tracks', type=int, help='only process limited amount of tracks')
 @click.option('-d', '--dry', is_flag=True, help='simulate the run')
 @click.option('-f', '--force', is_flag=True, help='force overwriting of embedding files')
 @with_appcontext
-def reduce_all_command(n_tracks, dry, force):
-    reduce_all(n_tracks, dry, force)
+def reduce_all_command(projection, n_tracks, dry, force):
+    reduce_all(projection, n_tracks, dry, force)
