@@ -1,7 +1,6 @@
 import json
-from pathlib import Path
 
-from flask import Blueprint, current_app
+from flask import Blueprint
 import plotly.graph_objects as go
 import plotly
 import numpy as np
@@ -59,13 +58,12 @@ def plot_segments(embeddings, tracks, segment_length, show_trajectories=False):
 
     for (x, y), length, track in zip(trajectories, lengths, tracks):
         segments = track.get_segments(segment_length)
-        # ids = list(map(lambda s: f'{name}:{s:.2f}:{s + segment_length:.2f}', np.arange(0, length) * segment_length))
         fig.add_trace(go.Scatter(
             x=x,
             y=y,
             mode=mode,
             ids=[segment.id for segment in segments],
-            hovertext=[str(segment) for segment in segments],
+            hovertext=[str(segment) for segment in segments],  # TODO: come up with better hover text
             hoverinfo='text',
             name=track.path,
             line_shape='spline',
@@ -101,7 +99,7 @@ def plot(plot_type, dataset, architecture, layer, n_tracks, projection, x, y):
         model_projection = None if projection == 'original' else 'pca'
         model = Model(get_models().data, dataset, architecture, layer, model_projection)
 
-        tracks = Track.get_all(limit=n_tracks)
+        tracks = Track.get_all().limit(n_tracks)
 
         dimensions = [x, y] if projection in ['original', 'pca'] else None
 

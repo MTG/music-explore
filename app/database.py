@@ -2,10 +2,11 @@ from pathlib import Path
 from typing import List
 import logging
 
-from sqlalchemy import Column, Integer, String, ForeignKey, exists
+from sqlalchemy import Column, Integer, String, ForeignKey, Table
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 import click
+from flask import current_app
 from flask.cli import with_appcontext
 import numpy as np
 from tqdm import tqdm
@@ -14,17 +15,37 @@ from tqdm import tqdm
 db = SQLAlchemy()
 
 
-class Track(db.Model):
-    __tablename__ = 'track'
+class CommonMixin:
+    """
+    Has primary key id, and methods get_by_id and get_all
+    """
     id = Column(Integer, primary_key=True)
+
+    @classmethod
+    def get_by_id(cls, _id):
+        return db.session.query(cls).filter(cls.id == _id).first()
+
+    @classmethod
+    def get_all(cls):
+        return db.session.query(cls)
+
+
+class Track(CommonMixin, db.Model):
+    __tablename__ = 'track'
+
     segments = relationship('Segment', back_populates='track')
     path = Column(String, index=True, unique=True)
+
+    track_metadata = relationship('TrackMetadata', uselist=False, back_populates='track')
+
+    def __repr__(self):
+        return f'<Track({self.id}, path={self.path})>'
 
     def _segments_query(self, length):
         return db.session.query(Segment).filter_by(track_id=self.id, length=length)
 
     def has_segments(self, length):
-        # TODO: make it more elegant if possible
+        # TODO: make it more elegant if possible 
         return self._segments_query(length).first() is not None
 
     def get_segments(self, length):
@@ -44,47 +65,96 @@ class Track(db.Model):
     def get_all_embeddings_from_files(embedding_dir) -> List[np.ndarray]:
         return [track.get_embeddings_from_file(embedding_dir) for track in tqdm(Track.get_all())]
 
-    @staticmethod
-    def get_all(limit=None):
-        return db.session.query(Track).limit(limit).all()
-
-    @staticmethod
-    def get_by_id(track_id):
-        return db.session.query(Track).filter(Track.id == track_id).first()
-
     @property
     def jamendo_id(self):
         return Path(self.path).stem
 
+    @staticmethod
+    def get_by_path(path):
+        return db.session.query(Track).filter(Track.path == path).first()
 
-class Segment(db.Model):
+
+class Segment(CommonMixin, db.Model):
     __tablename__ = 'segment'
-    id = Column(Integer, primary_key=True)
+
     length = Column(Integer, primary_key=True)  # in ms
+    position = Column(Integer)
 
     track_id = Column(Integer, ForeignKey('track.id'))
     track = relationship('Track', back_populates='segments')
-    position = Column(Integer)
-    PRECISION = 2
 
     def __repr__(self):
         return f'{self.track_id}:{self.get_time()}'
 
-    def get_time(self):
-        start, stop = self.get_timestamps()
-        return f'{start:.{self.PRECISION}f}:{stop:.{self.PRECISION}f}'
+    @staticmethod
+    def _str(time):
+        """Transforms float into decimal format"""
+        precision = current_app.config['SEGMENT_PRECISION']
+        return f'{time:.{precision}f}'
 
     def get_timestamps(self):
         """Returns start and end timestamps in seconds"""
         return self.position * self.length / 1000, (self.position + 1) * self.length / 1000
 
+    def get_time(self):
+        start, end = self.get_timestamps()
+        return f'{self._str(start)}:{self._str(end)}'
+
     def get_url_suffix(self):
         start, end = self.get_timestamps()
-        return f'#t={start:.{self.PRECISION}f},{end:.{self.PRECISION}f}'
+        return f'#t={self._str(start)},{self._str(end)}'
 
-    @staticmethod
-    def get_by_id(segment_id):
-        return db.session.query(Segment).filter(Segment.id == segment_id).first()
+
+track_metadata_tag_table = Table('track_metadata_tag', db.Model.metadata,
+                                 Column('tag_id', Integer, ForeignKey('tag.id')),
+                                 Column('track_id', Integer, ForeignKey('track_metadata.id'))
+                                 )
+
+
+class TrackMetadata(CommonMixin, db.Model):
+    __tablename__ = 'track_metadata'
+    id = Column(Integer, ForeignKey('track.id'), primary_key=True)
+    track = relationship('Track', back_populates='track_metadata')
+    streaming_id = Column(String, unique=True)
+    name = Column(String)
+
+    artist_id = Column(Integer, ForeignKey('artist.id'))
+    artist = relationship('Artist', back_populates='tracks_metadata')
+
+    album_id = Column(Integer, ForeignKey('album.id'))
+    album = relationship('Album', back_populates='tracks_metadata')
+
+    tags = relationship('Tag', secondary=track_metadata_tag_table, back_populates='tracks_metadata')
+
+    def __repr__(self):
+        return f'<TrackMetadata({self.id}, jamendo:{self.streaming_id})>'
+
+
+class Artist(CommonMixin, db.Model):
+    __tablename__ = 'artist'
+    name = Column(String)
+
+    tracks_metadata = relationship('TrackMetadata', back_populates='artist')
+
+    albums = relationship('Album', back_populates='artist')
+
+
+class Album(CommonMixin, db.Model):
+    __tablename__ = 'album'
+    name = Column(String)
+
+    tracks_metadata = relationship('TrackMetadata', back_populates='album')
+
+    artist_id = Column(Integer, ForeignKey('artist.id'))
+    artist = relationship('Artist', back_populates='albums')
+
+
+class Tag(CommonMixin, db.Model):
+    __tablename__ = 'tag'
+    name = Column(String, index=True)
+    group = Column(String, index=True)
+
+    tracks_metadata = relationship('TrackMetadata', secondary=track_metadata_tag_table, back_populates='tags')
 
 
 @click.command('init-db')

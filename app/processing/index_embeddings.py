@@ -18,7 +18,7 @@ def index_embeddings(input_dir, index_file, n_dimensions, segment_length, n_tree
     embeddings_index = AnnoyIndex(n_dimensions, current_app.config['ANNOY_DISTANCE'])
 
     logging.info(f'Loading embeddings in {input_dir}...')
-    for track in tqdm(Track.get_all(limit=n_tracks)):
+    for track in tqdm(Track.get_all().limit(n_tracks)):
         has_segments = track.has_segments(segment_length)
         embeddings = track.get_embeddings_from_file(input_dir)
         for i, embedding in enumerate(embeddings):

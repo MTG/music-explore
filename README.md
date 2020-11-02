@@ -21,7 +21,7 @@ Edit the config:
 If you want to serve audio from local server create a soft link `app/static/audio` pointing to audio folder and make 
 sure that `AUDIO_PROVIDER` is set to `local`. 
 ```shell
-ln -s /path/to/your/audio app/static/audio
+ln -s /path/to/your/root/audio app/static/audio
 ```
 
 If you are using [mtg-jamendo-dataset](https://github.com/MTG/mtg-jamendo-dataset), you can serve audio directly 
@@ -85,6 +85,11 @@ Example:
 docker build -t music-explore .
 docker run -p 8080:80 -v /path/to/data:/data -v /path/to/audio:/app/static/audio music-explore  # run with local audio
 docker run -p 8080:80 -v /path/to/data:/data --env JAMENDO_CLIENT_ID=XXXXXXXX music-explore  # run with Jamendo API
+```
+
+## Jamendo metadata integration
+```shell
+flask load-jamendo-data /path/to/raw_30s_cleantags.tsv
 ```
 
 ## License
