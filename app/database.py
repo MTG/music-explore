@@ -3,17 +3,20 @@ from typing import List
 import logging
 from dataclasses import dataclass
 
-from sqlalchemy import Column, Integer, String, ForeignKey, Table
+from sqlalchemy import Column, Integer, String, ForeignKey, Table, and_
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 import click
 from flask import current_app
 from flask.cli import with_appcontext
 import numpy as np
-from tqdm import tqdm
 
 
 db = SQLAlchemy()
+
+
+def needs_committing(session_size):
+    return session_size >= current_app.config['DB_COMMIT_BATCH_SIZE']
 
 
 class CommonMixin:
@@ -27,8 +30,11 @@ class CommonMixin:
         return db.session.query(cls).filter(cls.id == _id).first()
 
     @classmethod
-    def get_all(cls):
-        return db.session.query(cls)
+    def get_all(cls, limit=None):
+        query = db.session.query(cls)
+        if limit is not None:
+            query = query.limit(limit)
+        return query.all()  # mostly used with tqdm, so it's nice to have len from .all()
 
 
 class Track(CommonMixin, db.Model):
@@ -58,10 +64,6 @@ class Track(CommonMixin, db.Model):
     def get_embeddings_from_file(self, embeddings_dir) -> np.ndarray:
         path = Path(embeddings_dir) / self.get_embeddings_filename()
         return np.load(str(path))
-
-    @staticmethod
-    def get_all_embeddings_from_files(embedding_dir) -> List[np.ndarray]:
-        return [track.get_embeddings_from_file(embedding_dir) for track in tqdm(Track.get_all())]
 
     @property  # TODO: replace with metadata streaming_id
     def jamendo_id(self):
@@ -103,6 +105,8 @@ class Segmentation(CommonMixin, db.Model):
     id = Column(Integer, ForeignKey('track.id'), primary_key=True)
     track = relationship('Track', back_populates='segmentations')
     length = Column(Integer, primary_key=True)  # in ms
+
+    # segment_ids
     start_id = Column(Integer, index=True)
     stop_id = Column(Integer, index=True)
 
@@ -112,6 +116,11 @@ class Segmentation(CommonMixin, db.Model):
     def get_segments(self):
         return [Segment(segment_id, self.length, segment_id - self.start_id, self.id)
                 for segment_id in range(self.start_id, self.stop_id)]
+
+    @staticmethod
+    def get_segmentation(segment_id):
+        return db.session.query(Segmentation).filter(and_(Segmentation.start_id <= segment_id,
+                                                          Segmentation.stop_id > segment_id)).first()
 
 
 track_metadata_tag_table = Table('track_metadata_tag', db.Model.metadata,

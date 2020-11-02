@@ -5,9 +5,8 @@ from flask.cli import with_appcontext
 from flask import current_app
 import click
 from tqdm import tqdm
-from sqlalchemy.exc import SQLAlchemyError, OperationalError, IntegrityError
 
-from app.database import Track, db
+from app.database import Track, db, needs_committing
 
 
 def index_audio(input_dir, wildcard='*.mp3'):
@@ -17,22 +16,20 @@ def index_audio(input_dir, wildcard='*.mp3'):
         logging.error(f'No {wildcard} files found in {input_dir}')
         exit(1)
 
+    session_size = 0
     logging.info(f'Indexing audio in {input_dir}')
     for audio_file in tqdm(audio_files):
-        relative_path = audio_file.relative_to(input_dir)
-        track = Track(path=str(relative_path))
-        db.session.add(track)
+        relative_path = str(audio_file.relative_to(input_dir))
+        if Track.get_by_path(relative_path) is None:
+            track = Track(path=str(relative_path))
+            db.session.add(track)
+            session_size += 1
 
-    logging.info('Saving to database...')
-    try:
-        db.session.commit()
-    except OperationalError:
-        logging.error('Cannot commit to DB, have you created the tables? Make sure you run `init-db` first')
-        exit(1)
-    except IntegrityError:
-        logging.error('Unique constraint broken, maybe you have already added the tracks to database?')
-        exit(1)
+            if needs_committing(session_size):
+                db.session.commit()
+                session_size = 0
 
+    db.session.commit()
     logging.info('Done!')
 
 

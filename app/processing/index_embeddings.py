@@ -7,13 +7,11 @@ from flask.cli import with_appcontext
 from flask import current_app
 from tqdm import tqdm
 
-from app.database import Segmentation, Track, db
+from app.database import Segmentation, Track, db, needs_committing
 from app.models import get_models
 
 
 def index_embeddings(input_dir, index_file, n_dimensions, segment_length, n_trees=16, n_tracks=None, dry=False, force=False):
-    # TODO: incorporate dry and force flags into database operations
-    current_index = 0
     embeddings_index = AnnoyIndex(n_dimensions, current_app.config['ANNOY_DISTANCE'])
     index_file = Path(index_file)
 
@@ -21,22 +19,30 @@ def index_embeddings(input_dir, index_file, n_dimensions, segment_length, n_tree
         print(f'Index {index_file} already exists, skipping')
         return
 
+    current_index = 0
+    session_size = 0
+
     logging.info(f'Loading embeddings in {input_dir}...')
-    for track in tqdm(Track.get_all().limit(n_tracks)):
+    for track in tqdm(Track.get_all(limit=n_tracks)):
         embeddings = track.get_embeddings_from_file(input_dir)
-        total = len(embeddings)
+        total_segments = len(embeddings)
 
-        for i, embedding in enumerate(embeddings):
-            embeddings_index.add_item(current_index + i, embedding)  # annoy
+        for position, embedding in enumerate(embeddings):
+            embeddings_index.add_item(current_index + position, embedding)  # annoy
 
-        # TODO: maybe replace iterative approach with retrieving tracks in the beginning - depending on performance
         if not track.has_segmentation(segment_length):
             db.session.add(Segmentation(track=track, length=segment_length, start_id=current_index,
-                                        stop_id=current_index + total))
-            if not dry:
-                db.session.commit()  # add segments on per-track basis
+                                        stop_id=current_index + total_segments))
+            session_size += 1
 
-        current_index += total
+        if not dry and needs_committing(session_size):
+            db.session.commit()
+            session_size = 0
+
+        current_index += total_segments
+
+    if not dry:
+        db.session.commit()  # commit remaining tracks in session
 
     logging.info('Building index...')
     embeddings_index.build(n_trees, n_jobs=-1)
@@ -82,8 +88,8 @@ def index_embeddings_command(input_dir, index_file, n_dimensions, segment_length
 
 
 @click.command('index-all-embeddings')
-@click.option('-t', '--n_trees', type=int, default=16, help='number of trees for the annoy index')
-@click.option('-n', '--n_tracks', type=int, help='only process limited amount of tracks')
+@click.option('-t', '--n-trees', type=int, default=16, help='number of trees for the annoy index')
+@click.option('-n', '--n-tracks', type=int, help='only process limited amount of tracks')
 @click.option('-d', '--dry', is_flag=True, help='simulate the run')
 @click.option('-f', '--force', is_flag=True, help='overwrite annoy index and database entries if they exist')
 @with_appcontext

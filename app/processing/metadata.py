@@ -5,7 +5,7 @@ from tqdm import tqdm
 from flask.cli import with_appcontext
 import click
 
-from app.database import db, Track, TrackMetadata, Album, Artist, Tag
+from app.database import db, Track, TrackMetadata, Album, Artist, Tag, needs_committing
 
 
 TAG_HYPHEN = '---'
@@ -22,6 +22,7 @@ def load_jamendo_metadata(input_file):
         reader = csv.reader(fp, delimiter='\t')
         next(reader, None)  # skip header
 
+        session_size = 0
         for row in tqdm(reader, total=total_rows):
             track_jamendo_id = parse_id(row[0])
             artist_id = parse_id(row[1])
@@ -55,12 +56,15 @@ def load_jamendo_metadata(input_file):
 
                         tag.tracks_metadata.append(track_metadata)
 
-                    db.session.commit()
+                    session_size += 1
+                    if needs_committing(session_size):
+                        db.session.commit()
+                        session_size = 0
 
+    db.session.commit()
 
 # def query_jamendo_api(batch_size):
 #     for track_metadata in db.session.query(TrackMetadata).filter(TrackMetadata.name==None):
-
 
 
 @click.command('load-jamendo-metadata')

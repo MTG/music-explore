@@ -99,7 +99,7 @@ def plot(plot_type, dataset, architecture, layer, n_tracks, projection, x, y):
         model_projection = None if projection == 'original' else 'pca'
         model = Model(get_models().data, dataset, architecture, layer, model_projection)
 
-        tracks = Track.get_all().limit(n_tracks)
+        tracks = Track.get_all(limit=n_tracks)
 
         dimensions = [x, y] if projection in ['original', 'pca'] else None
 

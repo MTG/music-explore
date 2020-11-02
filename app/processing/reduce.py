@@ -56,7 +56,7 @@ def reduce(input_dir, output_dir, projection: str, n_tracks=None, dry=False, for
     except KeyError:
         raise ValueError(f'Invalid projection_type: {projection}')
 
-    embeddings = Track.get_all_embeddings_from_files(input_dir)[:n_tracks]
+    embeddings = [track.get_embeddings_from_file(input_dir) for track in tqdm(Track.get_all(limit=n_tracks))]
 
     logging.info(f'Applying {projection}...')
     embeddings_reduced = reduce_func(embeddings)
@@ -64,7 +64,7 @@ def reduce(input_dir, output_dir, projection: str, n_tracks=None, dry=False, for
     logging.info('Saving reduced...')
     if not dry:
         output_dir = Path(output_dir)
-        for track, data in zip(tqdm(Track.get_all().limit(n_tracks)), embeddings_reduced):
+        for track, data in zip(tqdm(Track.get_all(limit=n_tracks)), embeddings_reduced):
             output_file = output_dir / track.get_embeddings_filename()
             if force or not output_file.exists():
                 output_file.parent.mkdir(parents=True, exist_ok=True)
