@@ -29,9 +29,10 @@ def plot_averages(embeddings, tracks):
         y=avg[:, 1],
         mode='markers',
         marker=dict(size=std * PLOTLY_MARKER_SCALE),
-        hovertext=[track.path for track in tracks],
+        hovertext=[str(track) for track in tracks],
         hoverinfo='text',
-        ids=[track.id for track in tracks]
+        ids=[track.id for track in tracks],
+        marker_color=[track.track_metadata.artist_id for track in tracks]
     ))
     return fig
 

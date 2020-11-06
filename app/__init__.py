@@ -30,6 +30,10 @@ def create_app(test_config=None):
     from . import processing
     processing.init_app(app)
 
+    # experiments
+    from . import experiments
+    experiments.init_app(app)
+
     # blueprints
     from . import views, plot, providers, models
     app.register_blueprint(views.bp)

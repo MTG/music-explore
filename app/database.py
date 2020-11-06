@@ -46,7 +46,7 @@ class Track(CommonMixin, db.Model):
     track_metadata = relationship('TrackMetadata', uselist=False, back_populates='track')
 
     def __repr__(self):
-        return f'<Track({self.id}, path={self.path})>'
+        return f'Track(id={self.id}, path={self.path})'
 
     # segmentations
 
@@ -148,7 +148,7 @@ class TrackMetadata(CommonMixin, db.Model):
     tags = relationship('Tag', secondary=track_metadata_tag_table, back_populates='tracks_metadata')
 
     def __repr__(self):
-        return f'<TrackMetadata({self.id}, jamendo:{self.streaming_id})>'
+        return f'TrackMetadata(id={self.id}, streaming_id={self.streaming_id})'
 
 
 class Artist(CommonMixin, db.Model):
