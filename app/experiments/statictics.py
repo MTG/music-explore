@@ -23,7 +23,7 @@ def _get_mean_and_std(model: Model, tracks: Iterable[Track]):
     return embeddings_stacked.mean(axis=0), embeddings_stacked.std(axis=0)
 
 
-def _save_if_not_exists(results, output_file):
+def save_if_not_exists(results, output_file):
     if output_file.exists():
         print(f'{output_file} already exists, skipping')
         return
@@ -42,15 +42,15 @@ def measure_tag_spread(model: Model, output_dir, n_tags=None):
         tracks = [track_metadata.track for track_metadata in tag.tracks_metadata]
         results_mean[tag.name], results_std[tag.name] = _get_mean_and_std(model, tracks)
 
-    _save_if_not_exists(results_mean, output_dir / FILENAME_TAGS_MEAN)
-    _save_if_not_exists(results_std, output_dir / FILENAME_TAGS_STD)
+    save_if_not_exists(results_mean, output_dir / FILENAME_TAGS_MEAN)
+    save_if_not_exists(results_std, output_dir / FILENAME_TAGS_STD)
 
 
 def measure_model_spread(model: Model, output_dir, n_tracks):
     mean, std = _get_mean_and_std(model, tqdm(Track.get_all(limit=n_tracks)))
     results = {'mean': mean, 'std': std}
 
-    _save_if_not_exists(results, output_dir / FILENAME_ALL_MEAN_STD)
+    save_if_not_exists(results, output_dir / FILENAME_ALL_MEAN_STD)
 
 
 @click.command('measure-tag-spread')
