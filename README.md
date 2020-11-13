@@ -15,13 +15,13 @@ cp config-example.py instance/config.py
 ```
 
 Edit the config:
-* Point the `ROOT_DIR` to the directory where you want to store all data, ideally with `audio` directory inside having
- audio files
+* Point the `ROOT_DIR` to the empty directory where all the data will be stored
+* Point the `AUDIO_DIR` to the directory with all the audio files
 
-If you want to serve audio from local server create a soft link `app/static/audio` pointing to audio folder and make 
-sure that `AUDIO_PROVIDER` is set to `local`. 
+If you are using own collection of audio, to serve audio from local server create a soft link `app/static/audio` 
+pointing to your audio folder and make sure that `AUDIO_PROVIDER` is set to `local`. 
 ```shell
-ln -s /path/to/your/root/audio app/static/audio
+ln -s /path/to/your/audio app/static/audio
 ```
 
 If you are using [mtg-jamendo-dataset](https://github.com/MTG/mtg-jamendo-dataset), you can serve audio directly 
@@ -31,11 +31,27 @@ from Jamendo servers by registering an app in [Jamendo Dev portal](https://devpo
 ### Environment
 
 ```shell
-python3.8 -m venv venv
+python3.7 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip wheel
 pip install -r requirements.txt
-pip install essentia-tensorflow  # this requirement is only needed for processing the audio, you can uninstall later
+```
+
+If you get an error while installing `annoy`, make sure that you have `python3.7-dev` installed
+
+You can use python 3.8+ with no problems for running the app, but you will need separate environment for audio 
+processing, as, there are no `essentia-tensorflow` wheels for Python 3.8 yet.
+However, it is a good idea to have separate environments for processing and running anyway, as there are some packages
+that are only used for processing.
+
+Additional processing libraries:
+* `tensorflow-essentia`: extracting embeddings (has no wheels for Python 3.8 yet, 380MB):
+```
+pip install essentia-tensorflow
+```
+* `tinytag`: install it if you use personal music collection, it parses ID3 tags
+```
+pip install essentia-tensorflow tinytag 
 ```
 
 ### Download essentia-tensorflow models
@@ -50,15 +66,7 @@ wget https://essentia.upf.edu/models/autotagging/mtt/mtt-vgg-1.pb -O mtt-vgg.pb
 wget https://essentia.upf.edu/models/feature-extractors/vggish/audioset-vggish-3.pb -O audioset-vggish.pb
 ```
 
-### Process audio
-
-```shell
-flask init-db
-flask index-all-audio
-flask extract-all essentia-tf-models
-flask reduce-all
-flask index-all-embeddings
-```
+If you don't want to use all models, feel free to comment out entries in `app/models.yaml`
 
 Embedding layers for the models:
 | Model   | Layer                                        | Size          |
@@ -67,7 +75,36 @@ Embedding layers for the models:
 | VGG     | model/flatten/Reshape                        | 2 x 128 = 256 |
 | VGGish  | model/vggish/fc2/BiasAdd                     | 128           |
 
-### Running
+If you don't have a lot of tracks, feel free to add `tsne` to `offline_projections` in `app/models.yaml`. By default
+t-SNE is applied dynamically only on the number of tracks that you are visualizing at a time.
+
+### Process audio
+
+```shell
+flask init-db  # creates tables in db
+flask index-all-audio  # creates list of audio tracks in db
+flask extract-all essentia-tf-models  # extracts embeddings
+flask reduce-all  # computes the projections
+flask index-all-embeddings  # indexes everything in database
+```
+
+#### Adding local metadata
+```shell
+flask load-id3-metadata
+```
+
+#### Adding Jamendo metadata
+Clone or download metadata from [mtg-jamendo-dataset]((https://github.com/MTG/mtg-jamendo-dataset))
+```shell
+flask load-jamendo-data path/to/mtg-jamendo-dataset/data/raw_30s_cleantags.tsv
+```
+
+Query Jamendo API for track, artist, album names
+```
+# TODO
+```
+
+### Running the app
 
 ```shell
 FLASK_ENV=development flask run
@@ -85,11 +122,6 @@ Example:
 docker build -t music-explore .
 docker run -p 8080:80 -v /path/to/data:/data -v /path/to/audio:/app/static/audio music-explore  # run with local audio
 docker run -p 8080:80 -v /path/to/data:/data --env JAMENDO_CLIENT_ID=XXXXXXXX music-explore  # run with Jamendo API
-```
-
-## Jamendo metadata integration
-```shell
-flask load-jamendo-data /path/to/raw_30s_cleantags.tsv
 ```
 
 ## License

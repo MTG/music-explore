@@ -7,7 +7,7 @@ from flask.cli import with_appcontext
 import plotly.express as px
 
 from app.models import Model, get_models
-from .statictics import FILENAME_ALL_MEAN_STD, FILENAME_TAGS_STD, FILENAME_TAGS_MEAN, FLOAT_FORMAT
+from .statistics import FILENAME_ALL_MEAN_STD, FILENAME_TAGS_STD, FILENAME_TAGS_MEAN, FLOAT_FORMAT
 
 
 def read_spread(model: Model, input_dir):

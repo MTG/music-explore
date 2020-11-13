@@ -29,7 +29,7 @@ def plot_averages(embeddings, tracks):
         y=avg[:, 1],
         mode='markers',
         marker=dict(size=std * PLOTLY_MARKER_SCALE),
-        hovertext=[str(track) for track in tracks],
+        hovertext=[track.track_metadata.to_text() for track in tracks],
         hoverinfo='text',
         ids=[track.id for track in tracks],
         marker_color=[track.track_metadata.artist_id for track in tracks]
@@ -55,18 +55,20 @@ def plot_segments(embeddings, tracks, segment_length, show_trajectories=False):
     fig = go.Figure()
 
     mode = 'lines+markers' if show_trajectories else 'markers'
-    args = {} if show_trajectories else {'marker_color': plotly.colors.qualitative.Plotly[0], 'showlegend': False}
+    args = {} if show_trajectories else {'marker_color': plotly.colors.qualitative.Plotly[0]}
 
     for (x, y), length, track in zip(trajectories, lengths, tracks):
         segments = track.get_segments(segment_length)
+        track_text = track.track_metadata.to_text()
         fig.add_trace(go.Scatter(
             x=x,
             y=y,
             mode=mode,
             ids=[segment.id for segment in segments],
-            hovertext=[str(segment) for segment in segments],  # TODO: come up with better hover text
+            hovertext=[segment.to_text() for segment in segments],
             hoverinfo='text',
-            name=track.path,
+            name=track_text,
+            showlegend=False,
             line_shape='spline',
             **args
         ))
@@ -95,23 +97,26 @@ def get_plotly_fig(plot_type, embeddings, tracks, model):
           '<projection>/<int:x>/<int:y>')
 def plot(plot_type, dataset, architecture, layer, n_tracks, projection, x, y):
     try:
+        models_data = get_models().data
+        tsne_dynamic = 'tsne' not in models_data['offline_projections'] and projection == 'tsne'
+
         # TODO: maybe validate dataset-model-layer?
         if projection == 'original':
             model_projection = None
-        elif projection == 'tsne':  # t-sne uses pca as input
+        elif tsne_dynamic:  # t-sne uses pca as input
             model_projection = 'pca'
-        else:  # 'pca', 's-pca'
+        else:  # 'pca', 'std-pca'
             model_projection = projection
         model = Model(get_models().data, dataset, architecture, layer, model_projection)
 
-        tracks = Track.get_all(limit=n_tracks)
+        tracks = Track.get_all(limit=n_tracks, random=True)
 
-        dimensions = None if projection == 'tsne' else [x, y] # TODO: load limited amount of dimensions for tsne
+        dimensions = None if tsne_dynamic else [x, y]  # TODO: load limited amount of dimensions for tsne
 
         # embeddings = model.get_embeddings_from_annoy(tracks, dimensions)
         embeddings = model.get_embeddings_from_file(tracks, dimensions)
 
-        if projection == 'tsne':  # TODO: try moving tsne to browser
+        if tsne_dynamic:  # TODO: try moving tsne to browser
             embeddings = reduce_tsne(embeddings)
 
         figure = get_plotly_fig(plot_type, embeddings, tracks, model)
@@ -122,6 +127,11 @@ def plot(plot_type, dataset, architecture, layer, n_tracks, projection, x, y):
             figure.update_layout(
                 xaxis_title=tags[x],
                 yaxis_title=tags[y]
+            )
+        else:
+            figure.update_layout(
+                xaxis_title=str(x),
+                yaxis_title=str(y)
             )
     except ValueError as e:
         return {'error': str(e)}, 400

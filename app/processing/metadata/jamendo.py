@@ -49,7 +49,7 @@ def load_jamendo_metadata(input_file):
                     for raw_tag in raw_tags:
                         # split genre---rock into group=genre and name=rock
                         tag_group, tag_name = raw_tag.split(TAG_HYPHEN)
-                        tag = db.session.query(Tag).filter(Tag.name == tag_name).filter(Tag.group == tag_group).first()
+                        tag = Tag.get_by_name_and_group(tag_name, tag_group)
                         if tag is None:
                             tag = Tag(name=tag_name, group=tag_group)
                             db.session.add(tag)

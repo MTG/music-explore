@@ -24,6 +24,9 @@ let playAudio = function (entityId) {
             let audio = $('#audio')[0];
             audio.load();
             audio.play();
+
+            let infoDiv = $('#track-info');
+            infoDiv.html(data.text)
             // TODO: only when id changes, and maybe cache
             // getJamendoMetadata(entityId, function (data) {
             //     let infoDiv = $('#track-info');

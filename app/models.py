@@ -45,6 +45,10 @@ class Model:
     def length(self):
         return self.architecture_data['segment-length']
 
+    @property
+    def n_dimensions(self):
+        return self.layer_data['size'] if self.projection != 'tsne' else 2
+
     def with_projection(self, projection):
         new_model = copy(self)
         new_model.projection = projection

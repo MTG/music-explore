@@ -17,3 +17,9 @@
             {% endfor %}
     </div>
 {% endmacro %}
+
+{% macro selector(data, category) %}
+    {% for key, value in data[category].items() %}
+        <option value="{{ key }}">{{ value['name'] }}</option>
+    {% endfor %}
+{% endmacro %}

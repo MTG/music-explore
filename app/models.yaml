@@ -53,7 +53,7 @@ architectures:
     essentia-algorithm: TensorflowPredictVGGish
     layers:
       embeddings:
-        name: 'model/vggish/embeddings'
+        name: 'model/vggish/fc2/BiasAdd'
         size: 128
     segment-length: 960
 

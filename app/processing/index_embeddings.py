@@ -63,7 +63,7 @@ def index_all_embeddings(n_trees=16, n_tracks=None, dry=False, force=False):
         index_embeddings(
             data_dir / str(model),
             model.index_file,
-            model.layer_data['size'],
+            model.n_dimensions,
             model.architecture_data['segment-length'],
             n_trees, n_tracks, dry, force
         )

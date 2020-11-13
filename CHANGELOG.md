@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SQLite database for
   - Mapping between Annoy ids and `track_id` with timestamps
   - Track metadata (artist, album, tags)
+  - Reading ID3 tags from local collections
 - New projection: STD-PCA that standardizes individual embedding dimensions before applying PCA
 
 ### Changed

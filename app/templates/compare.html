@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% set title = 'Compare' %}
+{% set page = 'compare' %}
+
+{% macro form() %}
+    <div class="form-row justify-content-center align-items-end">
+        <div class="col-auto form-group">
+            <label class="d-block text-center" for="selector-architecture">Architecture</label>
+            <select class="selectpicker form-control" id="selector-architecture">
+                {% for key, value in data['architectures'].items() %}
+                    <option value="{{ key }}">{{ value['name'] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-auto form-group">
+            <label class="d-block text-center" for="selector-dataset">Dataset</label>
+            <select class="selectpicker form-control" id="selector-dataset">
+                {% for key, value in data['datasets'].items() %}
+                    <option value="{{ key }}">{{ value['name'] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-auto form-group">
+            <label class="d-block text-center" for="selector-layer">Layer</label>
+            <select class="selectpicker form-control" id="selector-dataset">
+                <option value="embeddings">Embeddings</option>
+                <option value="taggrams">Taggrams</option>
+            </select>
+        </div>
+
+        <div class="col-auto form-group">
+            <label class="d-block text-center" for="selector-projection">Projection</label>
+            <select class="selectpicker form-control" id="selector-projection">
+                <option value="original">Original</option>
+                <option value="pca">PCA</option>
+                <option value="std-pca">STD-PCA</option>
+                <option value="tsne">t-SNE</option>
+            </select>
+        </div>
+
+        <div class="col-auto form-group">
+            <label class="d-block text-center" for="selector-dimensions">Dimensions</label>
+            <select class="selectpicker form-control" id="selector-dimensions"
+                    multiple data-max-options="2" data-live-search="true">
+            </select>
+        </div>
+
+        <div class="col-auto form-group">
+            <button class="btn btn-success" type="submit" id="btn-refresh"><i class="fas fa-sync"></i></button>
+        </div>
+    </div>
+{% endmacro %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-2">
+                <form>
+                    <div class="form-group">
+                        <select class="selectpicker form-control" id="selector-dimensions" multiple
+                                data-live-search="true" data-actions-box="true">
+                            <option>Pendulum</option>
+                            <option>Knife party</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="col">
+                <form id="left">
+                    {{ form() }}
+                </form>
+            </div>
+            <div class="col">
+                <form id="right">
+                    {{ form() }}
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,4 +1,4 @@
-from .statictics import measure_tag_spread_command, measure_model_spread_command, measure_spread_command
+from .statistics import measure_tag_spread_command, measure_model_spread_command, measure_spread_command
 from .analyze_spread import plot_dimension_spread_command, synthesize_all_spread_metrics_command
 
 

@@ -15,6 +15,12 @@ def playground():
                            tags=models.get_dict('datasets', 'tags'))
 
 
+@bp.route('/compare')
+def compare():
+    return render_template('compare.html',
+                           data=get_models().data)
+
+
 @bp.route('/explore')
 def explore():
     track_ids = ['1022300:27:30', '1080900:0:3', '1080900:30:33']

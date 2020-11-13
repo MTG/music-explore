@@ -25,14 +25,20 @@ def get_track_url(track):
     raise Exception('Wrong audio provider {provider} in the configuration')
 
 
-@bp.route('/track/<string:track_id>')
+@bp.route('/track/<int:track_id>')
 def get_track_url_api(track_id):
     track = Track.get_by_id(track_id)
-    return {'url': get_track_url(track)}
+    return {
+        'url': get_track_url(track),
+        'text': track.track_metadata.to_text()
+    }
 
 
-@bp.route('/segment/<string:segment_id>')
+@bp.route('/segment/<int:segment_id>')
 def get_segment_url(segment_id):
     segment = Segment.get_by_id(segment_id)
     track_url = get_track_url(segment.track)
-    return {'url': f'{track_url}{segment.get_url_suffix()}'}
+    return {
+        'url': f'{track_url}{segment.get_url_suffix()}',
+        'text': segment.track.track_metadata.to_text()
+    }

@@ -3,6 +3,7 @@ from typing import List
 import logging
 from dataclasses import dataclass
 
+from sqlalchemy.sql import func
 from sqlalchemy import Column, Integer, String, ForeignKey, Table, and_
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
@@ -30,8 +31,12 @@ class CommonMixin:
         return db.session.query(cls).filter(cls.id == _id).first()
 
     @classmethod
-    def get_all(cls, limit=None):
+    def get_all(cls, limit=None, random=False):
         query = db.session.query(cls)
+
+        if random:
+            query = query.order_by(func.random())
+
         if limit is not None:
             query = query.limit(limit)
         return query.all()  # mostly used with tqdm, so it's nice to have len from .all()
@@ -90,17 +95,32 @@ class Segment:
         precision = current_app.config['SEGMENT_PRECISION']
         return f'{time:.{precision}f}'
 
+    @staticmethod
+    def _to_mm_ss(t):
+        return f'{int(t / 60)}:{int(t % 60):02}'
+
     def get_timestamps(self):
         """Returns start and end timestamps in seconds"""
         return self.position * self.length / 1000, (self.position + 1) * self.length / 1000
 
     def get_time(self):
         start, end = self.get_timestamps()
-        return f'{self._str(start)}:{self._str(end)}'
+        return f'{self._to_mm_ss(start)}~{self._to_mm_ss(end)}'
 
     def get_url_suffix(self):
         start, end = self.get_timestamps()
         return f'#t={self._str(start)},{self._str(end)}'
+
+    @staticmethod
+    def get_by_id(segment_id):
+        return Segmentation.get_by_segment_id(segment_id).get_segment(segment_id)
+
+    @property
+    def track(self):
+        return Track.get_by_id(self.track_id)
+
+    def to_text(self):
+        return f'{self.track.track_metadata.to_text()} ({self.get_time()})'
 
 
 class Segmentation(CommonMixin, db.Model):
@@ -116,12 +136,14 @@ class Segmentation(CommonMixin, db.Model):
     def __repr__(self):
         return f'<Segmentation({self.start_id}:{self.stop_id}, track={self.id}, length={self.length}>'
 
+    def get_segment(self, segment_id):
+        return Segment(segment_id, self.length, segment_id - self.start_id, self.id)
+
     def get_segments(self):
-        return [Segment(segment_id, self.length, segment_id - self.start_id, self.id)
-                for segment_id in range(self.start_id, self.stop_id)]
+        return [self.get_segment(segment_id) for segment_id in range(self.start_id, self.stop_id)]
 
     @staticmethod
-    def get_segmentation(segment_id):
+    def get_by_segment_id(segment_id):
         return db.session.query(Segmentation).filter(and_(Segmentation.start_id <= segment_id,
                                                           Segmentation.stop_id > segment_id)).first()
 
@@ -132,12 +154,19 @@ track_metadata_tag_table = Table('track_metadata_tag', db.Model.metadata,
                                  )
 
 
-class TrackMetadata(CommonMixin, db.Model):
+class NameMixin:
+    name = Column(String, index=True)
+
+    @classmethod
+    def get_by_name(cls, name):
+        return db.session.query(cls).filter_by(name=name).first()
+
+
+class TrackMetadata(CommonMixin, NameMixin, db.Model):
     __tablename__ = 'track_metadata'
     id = Column(Integer, ForeignKey('track.id'), primary_key=True)
     track = relationship('Track', back_populates='track_metadata')
     streaming_id = Column(String, unique=True)
-    name = Column(String)
 
     artist_id = Column(Integer, ForeignKey('artist.id'))
     artist = relationship('Artist', back_populates='tracks_metadata')
@@ -150,19 +179,20 @@ class TrackMetadata(CommonMixin, db.Model):
     def __repr__(self):
         return f'TrackMetadata(id={self.id}, streaming_id={self.streaming_id})'
 
+    def to_text(self):
+        return f'{self.artist.name} - {self.name}'
 
-class Artist(CommonMixin, db.Model):
+
+class Artist(CommonMixin, NameMixin, db.Model):
     __tablename__ = 'artist'
-    name = Column(String)
 
     tracks_metadata = relationship('TrackMetadata', back_populates='artist')
 
     albums = relationship('Album', back_populates='artist')
 
 
-class Album(CommonMixin, db.Model):
+class Album(CommonMixin, NameMixin, db.Model):
     __tablename__ = 'album'
-    name = Column(String)
 
     tracks_metadata = relationship('TrackMetadata', back_populates='album')
 
@@ -170,12 +200,15 @@ class Album(CommonMixin, db.Model):
     artist = relationship('Artist', back_populates='albums')
 
 
-class Tag(CommonMixin, db.Model):
+class Tag(CommonMixin, NameMixin, db.Model):
     __tablename__ = 'tag'
-    name = Column(String, index=True)
     group = Column(String, index=True)
 
     tracks_metadata = relationship('TrackMetadata', secondary=track_metadata_tag_table, back_populates='tags')
+
+    @staticmethod
+    def get_by_name_and_group(tag_name, tag_group):
+        return db.session.query(Tag).filter(Tag.name == tag_name).filter(Tag.group == tag_group).first()
 
 
 @click.command('init-db')
