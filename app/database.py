@@ -1,3 +1,4 @@
+from __future__ import annotations
 from pathlib import Path
 from typing import List
 import logging
@@ -11,7 +12,6 @@ import click
 from flask import current_app
 from flask.cli import with_appcontext
 import numpy as np
-
 
 db = SQLAlchemy()
 
@@ -81,8 +81,12 @@ class Track(CommonMixin, db.Model):
     def get_by_path(path):
         return db.session.query(Track).filter(Track.path == path).first()
 
+    @property
+    def full_id(self):
+        return f'track/{self.id}'
 
-@dataclass()
+
+@dataclass
 class Segment:
     id: int
     length: int
@@ -112,8 +116,8 @@ class Segment:
         return f'#t={self._str(start)},{self._str(end)}'
 
     @staticmethod
-    def get_by_id(segment_id):
-        return Segmentation.get_by_segment_id(segment_id).get_segment(segment_id)
+    def get_by_id(segment_length, segment_id):
+        return Segmentation.get_by_segment_id(segment_length, segment_id).get_segment(segment_id)
 
     @property
     def track(self):
@@ -121,6 +125,10 @@ class Segment:
 
     def to_text(self):
         return f'{self.track.track_metadata.to_text()} ({self.get_time()})'
+
+    @property
+    def full_id(self):
+        return f'segment/{self.length}/{self.id}'
 
 
 class Segmentation(CommonMixin, db.Model):
@@ -143,8 +151,9 @@ class Segmentation(CommonMixin, db.Model):
         return [self.get_segment(segment_id) for segment_id in range(self.start_id, self.stop_id)]
 
     @staticmethod
-    def get_by_segment_id(segment_id):
-        return db.session.query(Segmentation).filter(and_(Segmentation.start_id <= segment_id,
+    def get_by_segment_id(segment_length, segment_id):
+        return db.session.query(Segmentation).filter(and_(Segmentation.length == segment_length,
+                                                          Segmentation.start_id <= segment_id,
                                                           Segmentation.stop_id > segment_id)).first()
 
 

@@ -28,10 +28,10 @@ def plot_averages(embeddings, tracks):
         x=avg[:, 0],
         y=avg[:, 1],
         mode='markers',
-        marker=dict(size=std * PLOTLY_MARKER_SCALE),
+        marker={'size': std * PLOTLY_MARKER_SCALE},
         hovertext=[track.track_metadata.to_text() for track in tracks],
         hoverinfo='text',
-        ids=[track.id for track in tracks],
+        ids=[track.full_id for track in tracks],
         marker_color=[track.track_metadata.artist_id for track in tracks]
     ))
     return fig
@@ -64,7 +64,7 @@ def plot_segments(embeddings, tracks, segment_length, show_trajectories=False):
             x=x,
             y=y,
             mode=mode,
-            ids=[segment.id for segment in segments],
+            ids=[segment.full_id for segment in segments],
             hovertext=[segment.to_text() for segment in segments],
             hoverinfo='text',
             name=track_text,
@@ -109,12 +109,12 @@ def plot(plot_type, dataset, architecture, layer, n_tracks, projection, x, y):
             model_projection = projection
         model = Model(get_models().data, dataset, architecture, layer, model_projection)
 
-        tracks = Track.get_all(limit=n_tracks, random=True)
+        tracks = Track.get_all(limit=n_tracks, random=False)
 
         dimensions = None if tsne_dynamic else [x, y]  # TODO: load limited amount of dimensions for tsne
 
-        # embeddings = model.get_embeddings_from_annoy(tracks, dimensions)
-        embeddings = model.get_embeddings_from_file(tracks, dimensions)
+        embeddings = model.get_embeddings_from_annoy(tracks, dimensions)
+        # embeddings = model.get_embeddings_from_file(tracks, dimensions)
 
         if tsne_dynamic:  # TODO: try moving tsne to browser
             embeddings = reduce_tsne(embeddings)

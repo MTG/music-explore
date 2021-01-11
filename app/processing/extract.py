@@ -73,7 +73,7 @@ def extract_all(models_dir, accumulate=False, dry=False, force=False):
 def extract_command(input_dir, output_dir, algorithm, model_file, layer, accumulate, dry, force):
     """Extract embeddings from the .mp3 audio files in INPUT_DIR and save them as .npy files in the OUTPUT_DIR keeping
     similar directory hierarchy. ALGORITHM is a class name from essentia (e.g. TensorflowPredictMusiCNN), MODEL-FILE is
-    a path to a .pb file yhay can be used by that class"""
+    a path to a .pb file that can be used by that class"""
     extract(input_dir, output_dir, algorithm, model_file, layer, accumulate, dry, force)
 
 

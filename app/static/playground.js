@@ -10,10 +10,9 @@ let getJamendoMetadata = function (trackId, cb) {
     });
 };
 
-let playAudio = function (entityId) {
-    let entity = current('data-type') === 'averages' ? 'track' : 'segment';
+let playAudio = function (entity) {
     $.ajax({
-        url: '/audio/' + entity + '/' + entityId,
+        url: '/audio/' + entity,
         type: 'GET',
         contentType: 'application/json;charset=UTF-8',
         dataType: 'json',

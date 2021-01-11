@@ -34,9 +34,10 @@ def get_track_url_api(track_id):
     }
 
 
-@bp.route('/segment/<int:segment_id>')
-def get_segment_url(segment_id):
-    segment = Segment.get_by_id(segment_id)
+@bp.route('/segment/<int:segment_length>/<int:segment_id>')
+def get_segment_url(segment_length, segment_id):
+    segment = Segment.get_by_id(segment_length, segment_id)
+    print(segment.track)
     track_url = get_track_url(segment.track)
     return {
         'url': f'{track_url}{segment.get_url_suffix()}',
