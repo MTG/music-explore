@@ -1,13 +1,12 @@
-import yaml
-from dataclasses import dataclass
-from typing import Optional
 from copy import copy
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
-from flask import g, current_app, Blueprint
-from annoy import AnnoyIndex
 import numpy as np
-
+import yaml
+from annoy import AnnoyIndex
+from flask import Blueprint, current_app, g
 
 bp = Blueprint('models', __name__)
 

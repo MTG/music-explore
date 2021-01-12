@@ -1,5 +1,6 @@
-from flask import Flask
 import logging
+
+from flask import Flask
 
 
 def create_app(test_config=None):
@@ -35,7 +36,7 @@ def create_app(test_config=None):
     experiments.init_app(app)
 
     # blueprints
-    from . import views, plot, providers, models
+    from . import models, plot, providers, views
     app.register_blueprint(views.bp)
     app.register_blueprint(plot.bp)
     app.register_blueprint(providers.bp)

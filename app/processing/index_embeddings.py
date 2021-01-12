@@ -1,10 +1,10 @@
-from pathlib import Path
 import logging
+from pathlib import Path
 
-from annoy import AnnoyIndex
 import click
-from flask.cli import with_appcontext
+from annoy import AnnoyIndex
 from flask import current_app
+from flask.cli import with_appcontext
 from tqdm import tqdm
 
 from app.database import Segmentation, Track, db, needs_committing

@@ -1,11 +1,12 @@
+# import logging
 from pathlib import Path
 
-from flask import current_app
-from tqdm import tqdm
-from flask.cli import with_appcontext
 import click
+from flask import current_app
+from flask.cli import with_appcontext
+from tqdm import tqdm
 
-from app.database import db, Track, TrackMetadata, Artist, Album, Tag, needs_committing
+from app.database import Album, Artist, Tag, Track, TrackMetadata, db, needs_committing
 
 
 def load_id3_metadata(n_tracks=None):

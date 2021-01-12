@@ -1,12 +1,12 @@
-from typing import Iterable
-from pathlib import Path
 import logging
+from pathlib import Path
+from typing import Iterable
 
-import numpy as np
-from tqdm import tqdm
-import pandas as pd
 import click
+import numpy as np
+import pandas as pd
 from flask.cli import with_appcontext
+from tqdm import tqdm
 
 from app.database import Tag, Track
 from app.models import Model, get_models

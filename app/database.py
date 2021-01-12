@@ -1,16 +1,17 @@
 from __future__ import annotations
-from pathlib import Path
+
 import logging
 from dataclasses import dataclass
+from pathlib import Path
 
-from sqlalchemy.sql import func
-from sqlalchemy import Column, Integer, String, ForeignKey, Table, and_
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import relationship
 import click
+import numpy as np
 from flask import current_app
 from flask.cli import with_appcontext
-import numpy as np
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Column, ForeignKey, Integer, String, Table, and_
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 db = SQLAlchemy()
 

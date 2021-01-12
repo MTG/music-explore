@@ -1,18 +1,17 @@
-from pathlib import Path
-from typing import List
 import logging
+from pathlib import Path
+from typing import Iterable, List
 
-from tqdm import tqdm
+import click
 import numpy as np
-from typing import Iterable
+from flask import current_app
+from flask.cli import with_appcontext
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
-import click
-from flask.cli import with_appcontext
-from flask import current_app
+from tqdm import tqdm
 
-from app.models import get_models
 from app.database import Track
+from app.models import get_models
 
 
 def reduce_generic(embeddings: List[np.ndarray], projection, n_input_dimensions=None, preprocess=None):

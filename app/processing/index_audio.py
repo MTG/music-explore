@@ -1,9 +1,9 @@
-from pathlib import Path
 import logging
+from pathlib import Path
 
-from flask.cli import with_appcontext
-from flask import current_app
 import click
+from flask import current_app
+from flask.cli import with_appcontext
 from tqdm import tqdm
 
 from app.database import Track, db, needs_committing

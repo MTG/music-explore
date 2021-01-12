@@ -1,11 +1,10 @@
 import csv
 
-from tqdm import tqdm
-from flask.cli import with_appcontext
 import click
+from flask.cli import with_appcontext
+from tqdm import tqdm
 
-from app.database import db, Track, TrackMetadata, Album, Artist, Tag, needs_committing
-
+from app.database import Album, Artist, Tag, Track, TrackMetadata, db, needs_committing
 
 TAG_HYPHEN = '---'
 

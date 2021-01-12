@@ -1,12 +1,12 @@
 import json
 
-from flask import Blueprint
-import plotly.graph_objects as go
-import plotly
 import numpy as np
+import plotly
+import plotly.graph_objects as go
+from flask import Blueprint
 
-from .models import Model, get_models
 from .database import Track
+from .models import Model, get_models
 from .processing.reduce import reduce_tsne
 
 bp = Blueprint('plot', __name__)

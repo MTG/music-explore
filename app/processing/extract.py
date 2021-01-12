@@ -1,14 +1,14 @@
-from pathlib import Path
 import logging
+from pathlib import Path
 
-import numpy as np
-from tqdm import tqdm
 import click
-from flask.cli import with_appcontext
+import numpy as np
 from flask import current_app
+from flask.cli import with_appcontext
+from tqdm import tqdm
 
-from app.models import get_models
 from app.database import Track
+from app.models import get_models
 
 SAMPLE_RATE = 16000
 
