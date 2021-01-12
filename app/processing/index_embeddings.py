@@ -11,7 +11,8 @@ from app.database import Segmentation, Track, db, needs_committing
 from app.models import get_models
 
 
-def index_embeddings(input_dir, index_file, n_dimensions, segment_length, n_trees=16, n_tracks=None, dry=False, force=False):
+def index_embeddings(input_dir, index_file, n_dimensions, segment_length,
+                     n_trees=16, n_tracks=None, dry=False, force=False):
     embeddings_index = AnnoyIndex(n_dimensions, current_app.config['ANNOY_DISTANCE'])
     index_file = Path(index_file)
 

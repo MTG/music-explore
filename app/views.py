@@ -23,5 +23,5 @@ def compare():
 
 @bp.route('/explore')
 def explore():
-    track_ids = ['1022300:27:30', '1080900:0:3', '1080900:30:33']
+    # track_ids = ['1022300:27:30', '1080900:0:3', '1080900:30:33']
     return render_template('explore.html', audio_urls=[])  # [get_audio_url(track_id)['url'] for track_id in track_ids]

@@ -1,10 +1,10 @@
-from pathlib import Path
 import logging
+from pathlib import Path
 
-import pandas as pd
 import click
-from flask.cli import with_appcontext
+import pandas as pd
 import plotly.express as px
+from flask.cli import with_appcontext
 
 from app.models import Model, get_models
 from .statistics import FILENAME_ALL_MEAN_STD, FILENAME_TAGS_STD, FILENAME_TAGS_MEAN, FLOAT_FORMAT
@@ -16,7 +16,7 @@ def read_spread(model: Model, input_dir):
     df_tags_mean = pd.read_csv(input_dir / FILENAME_TAGS_MEAN, index_col=0)
     df_tags_std = pd.read_csv(input_dir / FILENAME_TAGS_STD, index_col=0)
     return df_tags_mean.sub(df_all['mean'], axis='index').div(df_all['std'], axis='index'), \
-           df_tags_std.div(df_all['std'], axis='index')
+        df_tags_std.div(df_all['std'], axis='index')
 
 
 def plot_dimension_spread(model: Model, input_dir):

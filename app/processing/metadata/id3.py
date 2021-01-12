@@ -1,5 +1,4 @@
 from pathlib import Path
-import logging
 
 from flask import current_app
 from tqdm import tqdm

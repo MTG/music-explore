@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from typing import Optional
 from copy import copy
 from pathlib import Path
-import logging
 
 from flask import g, current_app, Blueprint
 from annoy import AnnoyIndex

@@ -1,5 +1,4 @@
 import csv
-import logging
 
 from tqdm import tqdm
 from flask.cli import with_appcontext
@@ -43,7 +42,8 @@ def load_jamendo_metadata(input_file):
                         album = Album(id=album_id, artist=artist)
                         db.session.add(artist)
 
-                    track_metadata = TrackMetadata(track=track, streaming_id=str(track_jamendo_id), album=album, artist=artist)
+                    track_metadata = TrackMetadata(track=track, streaming_id=str(track_jamendo_id),
+                                                   album=album, artist=artist)
                     db.session.add(track_metadata)
 
                     for raw_tag in raw_tags:

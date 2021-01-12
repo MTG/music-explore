@@ -1,6 +1,5 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import List
 import logging
 from dataclasses import dataclass
 

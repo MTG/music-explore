@@ -5,7 +5,7 @@ import logging
 from tqdm import tqdm
 import numpy as np
 from typing import Iterable
-from sklearn.decomposition import PCA, IncrementalPCA
+from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 import click
 from flask.cli import with_appcontext
