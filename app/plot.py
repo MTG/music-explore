@@ -129,7 +129,7 @@ def plot(plot_type, dataset, architecture, layer, n_tracks, projection, x, y):
                 yaxis_title=tags[y]
             )
         # TODO: add proper labels for other modes
-        
+
     except ValueError as e:
         return {'error': str(e)}, 400
     except FileNotFoundError as e:

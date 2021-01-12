@@ -18,28 +18,28 @@ Edit the config:
 * Point the `ROOT_DIR` to the empty directory where all the data will be stored
 * Point the `AUDIO_DIR` to the directory with all the audio files
 
-If you are using own collection of audio, to serve audio from local server create a soft link `app/static/audio` 
-pointing to your audio folder and make sure that `AUDIO_PROVIDER` is set to `local`. 
+If you are using own collection of audio, to serve audio from local server create a soft link `app/static/audio`
+pointing to your audio folder and make sure that `AUDIO_PROVIDER` is set to `local`.
 ```shell
 ln -s /path/to/your/audio app/static/audio
 ```
 
-If you are using [mtg-jamendo-dataset](https://github.com/MTG/mtg-jamendo-dataset), you can serve audio directly 
-from Jamendo servers by registering an app in [Jamendo Dev portal](https://devportal.jamendo.com/) and setting 
+If you are using [mtg-jamendo-dataset](https://github.com/MTG/mtg-jamendo-dataset), you can serve audio directly
+from Jamendo servers by registering an app in [Jamendo Dev portal](https://devportal.jamendo.com/) and setting
 `JAMENDO_CLIENT_ID` variable. In this case make sure that `AUDIO_PROVIDER` is set to `jamendo`.
 
 ### Environment
 
 ```shell
-python3.7 -m venv venv
+python3.x -m venv venv
 source venv/bin/activate
-pip install --upgrade pip wheel
+pip install --upgrade pip setuptools wheel
 pip install -r requirements.txt
 ```
 
-If you get an error while installing `annoy`, make sure that you have `python3.7-dev` installed
+If you get an error while installing `annoy`, make sure that you have `python3.x-dev` installed
 
-You can use python 3.8+ with no problems for running the app, but you will need separate environment for audio 
+You can use python 3.8+ with no problems for running the app, but you will need separate environment for audio
 processing, as, there are no `essentia-tensorflow` wheels for Python 3.8 yet.
 However, it is a good idea to have separate environments for processing and running anyway, as there are some packages
 that are only used for processing.
@@ -51,7 +51,7 @@ pip install essentia-tensorflow
 ```
 * `tinytag`: install it if you use personal music collection, it parses ID3 tags
 ```
-pip install essentia-tensorflow tinytag 
+pip install essentia-tensorflow tinytag
 ```
 
 ### Download essentia-tensorflow models
@@ -124,9 +124,17 @@ docker run -p 8080:80 -v /path/to/data:/data -v /path/to/audio:/app/static/audio
 docker run -p 8080:80 -v /path/to/data:/data --env JAMENDO_CLIENT_ID=XXXXXXXX music-explore  # run with Jamendo API
 ```
 
+## Development
+
+```
+pip install pre-commit
+pre-commit install
+```
+
+
 ## License
 
-The code is licensed under [GNU Affero General Public License v3.0](/LICENSE). 
+The code is licensed under [GNU Affero General Public License v3.0](/LICENSE).
 
 ## Citation
 
@@ -142,7 +150,7 @@ When using or referencing this work, please cite the following publication:
 
 ## Acknowledgments
 
-This project has received funding from the European Union's Horizon 2020 research and innovation programme under the 
+This project has received funding from the European Union's Horizon 2020 research and innovation programme under the
 Marie Skłodowska-Curie grant agreement No. 765068.
 
 <img src="https://upload.wikimedia.org/wikipedia/commons/b/b7/Flag_of_Europe.svg" height="64" alt="Flag of Europe">
