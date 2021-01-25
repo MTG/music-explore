@@ -6,7 +6,7 @@
     <div class="form-row justify-content-center align-items-end">
         <div class="col-auto form-group">
             <label class="d-block text-center" for="selector-architecture">Architecture</label>
-            <select class="selectpicker form-control" id="selector-architecture">
+            <select class="selectpicker form-control" id="selector-architecture" name="architecture">
                 {% for key, value in data['architectures'].items() %}
                     <option value="{{ key }}">{{ value['name'] }}</option>
                 {% endfor %}
@@ -15,7 +15,7 @@
 
         <div class="col-auto form-group">
             <label class="d-block text-center" for="selector-dataset">Dataset</label>
-            <select class="selectpicker form-control" id="selector-dataset">
+            <select class="selectpicker form-control" id="selector-dataset" name="dataset">
                 {% for key, value in data['datasets'].items() %}
                     <option value="{{ key }}">{{ value['name'] }}</option>
                 {% endfor %}
@@ -24,7 +24,7 @@
 
         <div class="col-auto form-group">
             <label class="d-block text-center" for="selector-layer">Layer</label>
-            <select class="selectpicker form-control" id="selector-dataset">
+            <select class="selectpicker form-control" id="selector-layer" name="layer">
                 <option value="embeddings">Embeddings</option>
                 <option value="taggrams">Taggrams</option>
             </select>
@@ -32,18 +32,25 @@
 
         <div class="col-auto form-group">
             <label class="d-block text-center" for="selector-projection">Projection</label>
-            <select class="selectpicker form-control" id="selector-projection">
-                <option value="original">Original</option>
+            <select class="selectpicker form-control" id="selector-projection" name="projection">
                 <option value="pca">PCA</option>
                 <option value="std-pca">STD-PCA</option>
                 <option value="tsne">t-SNE</option>
+                <option value="original">Original</option>
             </select>
         </div>
 
-        <div class="col-auto form-group">
-            <label class="d-block text-center" for="selector-dimensions">Dimensions</label>
-            <select class="selectpicker form-control" id="selector-dimensions"
-                    multiple data-max-options="2" data-live-search="true">
+        <div class="col-auto form-group" style="display: none;">
+            <label class="d-block text-center" for="selector-dimension-x">X</label>
+            <select class="selectpicker form-control" id="selector-dimension-x" name="dimension-x"
+                    data-live-search="true">
+            </select>
+        </div>
+
+        <div class="col-auto form-group" style="display: none;">
+            <label class="d-block text-center" for="selector-dimension-y">Y</label>
+            <select class="selectpicker form-control" id="selector-dimension-y" name="dimension-y"
+                    data-live-search="true">
             </select>
         </div>
 
@@ -54,31 +61,74 @@
 {% endmacro %}
 
 {% block content %}
-    <div class="container-fluid">
-        <div class="row">
+    <div class="container-fluid h-100">
+        <div class="row h-100">
             <div class="col-2">
-                <form>
+                <form id="form-data" class="">
                     <div class="form-group">
-                    </div>
-                    <div class="form-group">
-                        <select class="selectpicker form-control" id="selector-dimensions" multiple
+                        <label class="" for="selector-tags">Tags</label>
+                        <select class="selectpicker form-control" id="selector-tags" multiple name="tags"
                                 data-live-search="true" data-actions-box="true">
-                            <option>Pendulum</option>
-                            <option>Knife party</option>
+                            {% for tag in tags %}
+                                <option value="{{ tag.id }}">{{ tag.name }}</option>
+                            {% endfor %}
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="selector-artists">Artists</label>
+                        <select class="selectpicker form-control" id="selector-artists" multiple name="artists"
+                                data-live-search="true" data-actions-box="true">
+                            {% for artist in artists %}
+                                <option value="{{ artist.id }}">{{ artist.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-success" type="submit" id="btn-refresh"><i class="fas fa-sync"></i></button>
+                    </div>
                 </form>
+
+                <form id="form-highlight">
+                    Highlight groups
+                    <div class="form-group form-row">
+                        <select class="col selectpicker form-control" name="filter-entity">
+                            <option>Tag</option>
+                            <option>Artist</option>
+                            <option>Album</option>
+                            <option>Track</option>
+                        </select>
+                        <select class="col selectpicker form-control" multiple name="filter-items">
+                            <option>...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" id="btn-add-filter">+</button>
+                    </div>
+                </form>
+
+                <div>
+                    <audio class="w-100" id="audio" controls></audio>
+                    <div class="text-center" id="track-info"></div>
+                </div>
             </div>
-            <div class="col">
-                <form id="left">
+            <div class="col-5">
+                <form id="form-left">
                     {{ form() }}
                 </form>
+                <div id="plot-left" class="plot"></div>
             </div>
-            <div class="col">
-                <form id="right">
+            <div class="col-5">
+                <form id="form-right">
                     {{ form() }}
                 </form>
+                <div id="plot-right" class="plot"></div>
             </div>
         </div>
     </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/commons.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/audio.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/compare.js') }}"></script>
 {% endblock %}

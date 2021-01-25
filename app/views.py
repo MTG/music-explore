@@ -1,5 +1,7 @@
 from flask import Blueprint, render_template
 
+from app.database import Artist, Tag
+
 from .models import get_models
 
 bp = Blueprint('views', __name__)
@@ -18,7 +20,9 @@ def playground():
 @bp.route('/compare')
 def compare():
     return render_template('compare.html',
-                           data=get_models().data)
+                           data=get_models().data,
+                           artists=sorted(Artist.get_all()),
+                           tags=sorted(Tag.get_all()))
 
 
 @bp.route('/explore')

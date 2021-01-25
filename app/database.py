@@ -9,7 +9,7 @@ import numpy as np
 from flask import current_app
 from flask.cli import with_appcontext
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, ForeignKey, Integer, String, Table, and_
+from sqlalchemy import Column, ForeignKey, Integer, String, Table, and_, or_
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -170,6 +170,9 @@ class NameMixin:
     def get_by_name(cls, name):
         return db.session.query(cls).filter_by(name=name).first()
 
+    def __lt__(self, other):
+        return self.name < other.name
+
 
 class TrackMetadata(CommonMixin, NameMixin, db.Model):
     __tablename__ = 'track_metadata'
@@ -190,6 +193,13 @@ class TrackMetadata(CommonMixin, NameMixin, db.Model):
 
     def to_text(self):
         return f'{self.artist.name} - {self.name}'
+
+    @staticmethod
+    def get_by_tags_and_artists(tag_ids, artist_ids):
+        return db.session.query(TrackMetadata).join(Tag.tracks_metadata).filter(or_(
+            TrackMetadata.artist_id.in_(artist_ids),
+            Tag.id.in_(tag_ids)
+        )).all()
 
 
 class Artist(CommonMixin, NameMixin, db.Model):

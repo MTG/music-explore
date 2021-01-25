@@ -107,9 +107,7 @@
             </div>
 
             <div class="row justify-content-center">
-                <audio id="audio" controls>
-                    <source id="audio-source" type="audio/mpeg">
-                </audio>
+                <audio id="audio" controls></audio>
             </div>
             <div class="row justify-content-center" id="track-info"></div>
 
@@ -119,5 +117,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='playground.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/commons.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/audio.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/playground.js') }}"></script>
 {% endblock %}

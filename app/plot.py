@@ -3,9 +3,9 @@ import json
 import numpy as np
 import plotly
 import plotly.graph_objects as go
-from flask import Blueprint
+from flask import Blueprint, request
 
-from .database import Track
+from .database import Track, TrackMetadata
 from .models import Model, get_models
 from .processing.reduce import reduce_tsne
 
@@ -134,5 +134,59 @@ def plot(plot_type, dataset, architecture, layer, n_tracks, projection, x, y):
         return {'error': str(e)}, 400
     except FileNotFoundError as e:
         return {'error': str(e)}, 404
+
+    return json.dumps(figure, cls=plotly.utils.PlotlyJSONEncoder)
+
+
+def plot_segments_advanced(embeddings, tracks, segment_length):
+    fig = go.Figure()
+    scale = plotly.colors.qualitative.Plotly
+
+    groups = {}
+
+    for track_embeddings, track in zip(embeddings, tracks):
+        segments = track.get_segments(segment_length)
+        track_text = track.track_metadata.to_text()
+
+        group_id = track.track_metadata.artist_id
+        if group_id not in groups:
+            groups[group_id] = len(groups)
+
+        fig.add_trace(go.Scattergl(
+            x=track_embeddings[:, 0],
+            y=track_embeddings[:, 1],
+            mode='markers',
+            ids=[segment.full_id for segment in segments],
+            hovertext=[segment.to_text() for segment in segments],
+            hoverinfo='text',
+            name=track_text,
+            showlegend=False,
+            # marker={'color': scale[groups[group_id]]}
+            marker={'color': scale[0]}
+        ))
+    return fig
+
+
+@bp.route('/plot-advanced', methods=['POST'])
+def plot_advanced():
+    request_model = request.json['model']
+    request_filters = request.json['filters']
+
+    projection = request_model['projection']
+    if projection == 'original':
+        projection = None
+
+    model = Model(get_models().data, request_model['dataset'], request_model['architecture'],
+                  request_model['layer'], projection)
+
+    tag_ids = [int(tag) for tag in request_filters['tags']]
+    artist_ids = [int(artist) for artist in request_filters['artists']]
+    tracks_meta = TrackMetadata.get_by_tags_and_artists(tag_ids, artist_ids)
+
+    tracks = [track_meta.track for track_meta in tracks_meta]
+    embeddings = model.get_embeddings_from_file(tracks, [0, 1])
+
+    figure = plot_segments_advanced(embeddings, tracks, model.length)
+    figure.update_layout(margin=PLOTLY_MARGINS)
 
     return json.dumps(figure, cls=plotly.utils.PlotlyJSONEncoder)

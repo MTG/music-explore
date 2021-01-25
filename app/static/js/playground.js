@@ -10,43 +10,6 @@ let getJamendoMetadata = function (trackId, cb) {
     });
 };
 
-let playAudio = function (entity) {
-    $.ajax({
-        url: '/audio/' + entity,
-        type: 'GET',
-        contentType: 'application/json;charset=UTF-8',
-        dataType: 'json',
-        success: function (data) {
-            console.log('Got jamendo url:');
-            console.dir(data);
-            $('#audio-source')[0].src = data.url;
-            let audio = $('#audio')[0];
-            audio.load();
-            audio.play();
-
-            let infoDiv = $('#track-info');
-            infoDiv.html(data.text)
-            // TODO: only when id changes, and maybe cache
-            // getJamendoMetadata(entityId, function (data) {
-            //     let infoDiv = $('#track-info');
-            //     if (data) {
-            //         infoDiv.html(data['artist_name'] + ' - ' + data['name'] +
-            //             '&nbsp;<a href="https://jamen.do/t/' + data['id'] +
-            //             '" target="_blank"><i class="fas fa-link"></i></a>');
-            //     } else {
-            //         infoDiv.html('');
-            //     }
-            // });
-        }
-    });
-};
-
-let stopAudio = function () {
-    let audio = $('#audio')[0];
-    audio.pause();
-};
-
-
 // TODO: replace as many calls to current as possible with parameter passing
 // return the current value of the selector
 let current = function (name) {
@@ -128,7 +91,7 @@ let loadPlot = function (animate) {
                 // });
             }
             console.log('Assigning initial audio bind');
-            changeAudioBind(localStorage.getItem('audio'), true);
+            bindAudio('plot', localStorage.getItem('audio'));
         },
         error: function (data) {
             console.log('Error ' + data.status);
@@ -149,34 +112,6 @@ let loadPlot = function (animate) {
     });
 };
 
-let plotEventHandler = function (data) {
-    console.dir(data);
-    let id = data.points[0].id;
-    playAudio(id);
-};
-
-let changeAudioBind = function (value, init) {
-    let plotDiv = $('#plot')[0];
-
-    if (!init) {
-        console.log('Removing listeners');
-        plotDiv.removeAllListeners('plotly_hover');
-        plotDiv.removeAllListeners('plotly_click');
-    }
-
-    let event = null;
-    if (value === 'hover') {
-        event = 'plotly_hover';
-    } else if (value === 'click') {
-        event = 'plotly_click';
-    }
-
-    if (event != null) {
-        plotDiv.on(event, plotEventHandler);
-    }
-
-    localStorage.setItem('audio', value)
-};
 
 let getMetadata = function (cb) {
     $.ajax({
@@ -382,7 +317,8 @@ $(function () {
     initSelector('audio', 'hover', true);
     $('input[name=audio]').change(function () {
         console.log('Changing audio bind: ' + this.value);
-        changeAudioBind(this.value, false)
+        bindAudio('plot', this.value, true);
+        localStorage.setItem('audio', this.value);
     });
 
     // log-scale interaction
