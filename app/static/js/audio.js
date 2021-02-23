@@ -9,7 +9,9 @@ let playAudio = function (entity) {
         audio.src = this.response.url;
         audio.load();
         audio.play();
-        infoDiv.innerHTML = this.response.text;
+        if (infoDiv) {
+            infoDiv.innerHTML = this.response.text;
+        }
     });
     xhr.send();
 };

@@ -3,6 +3,7 @@ from flask import Blueprint, render_template
 from app.database import Artist, Tag
 
 from .models import get_models
+from .similarity import get_segments
 
 bp = Blueprint('views', __name__)
 
@@ -25,7 +26,7 @@ def compare():
                            tags=sorted(Tag.get_all()))
 
 
-@bp.route('/explore')
+@bp.route('/similarity')
 def explore():
-    # track_ids = ['1022300:27:30', '1080900:0:3', '1080900:30:33']
-    return render_template('explore.html', audio_urls=[])  # [get_audio_url(track_id)['url'] for track_id in track_ids]
+    segments = get_segments()
+    return render_template('similarity.html', segments=segments)

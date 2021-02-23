@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% set title = 'Similarity' %}
+{% set page = 'similarity' %}
+{% block content %}
+<div class="container">
+    <audio id="audio" controls style="display: none"></audio>
+    <div class="row">
+        <h4>Which music segment is the most similar to the reference?</h4>
+    </div>
+    <div class="row">
+        <div>
+            <button type="button" class="btn btn-secondary" id="segment-reference" value="{{ segments['reference'].full_id }}">
+                <i class="fas fa-2x fa-play"></i></button> :
+            <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                {% for segment in segments['choices'] %}
+                    <label class="btn btn-outline-primary">
+                        <input type="radio" name="segment-choice" value="{{ segment.full_id }}"><i class="fas fa-2x fa-play"></i>
+                    </label>
+                {% endfor %}
+                <label class="btn btn-outline-primary">
+                    <input type="radio" name="segment-choice" value=""><i class="fas fa-2x fa-ban"></i>
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div>
+            <button type="submit" class="btn btn-success mt-2" id="submit" disabled>Submit</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/commons.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/audio.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/similarity.js') }}"></script>
+{% endblock %}

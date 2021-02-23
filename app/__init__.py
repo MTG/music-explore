@@ -36,10 +36,11 @@ def create_app(test_config=None):
     experiments.init_app(app)
 
     # blueprints
-    from . import models, plot, providers, views
+    from . import models, plot, providers, similarity, views
     app.register_blueprint(views.bp)
     app.register_blueprint(plot.bp)
     app.register_blueprint(providers.bp)
     app.register_blueprint(models.bp)
+    app.register_blueprint(similarity.bp)
 
     return app
