@@ -57,12 +57,17 @@ class Model:
         new_model.projection = None
         return new_model
 
+    def get_annoy_index(self):
+        if not hasattr(self, 'index'):
+            self.index = AnnoyIndex(self.layer_data['size'], current_app.config['ANNOY_DISTANCE'])
+            self.index.load(str(self.index_file))
+        return self.index
+
     def get_embeddings_from_annoy(self, tracks, dimensions=None):
-        index = AnnoyIndex(self.layer_data['size'], current_app.config['ANNOY_DISTANCE'])
-        index.load(str(self.index_file))
+        self.get_annoy_index()
         embeddings = []
         for track in tracks:
-            track_embeddings = [index.get_item_vector(segment.id) for segment in track.get_segments(self.length)]
+            track_embeddings = [self.index.get_item_vector(segment.id) for segment in track.get_segments(self.length)]
             track_embeddings = np.array(track_embeddings)
             if dimensions is not None:
                 track_embeddings = track_embeddings[:, dimensions]

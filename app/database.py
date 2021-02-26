@@ -156,6 +156,11 @@ class Segmentation(CommonMixin, db.Model):
                                                           Segmentation.start_id <= segment_id,
                                                           Segmentation.stop_id > segment_id)).first()
 
+    @staticmethod
+    def get_total_segments(segment_length):
+        return db.session.query(func.max(Segmentation.stop_id)).filter(
+            Segmentation.length == segment_length).first()[0]
+
 
 track_metadata_tag_table = Table('track_metadata_tag', db.Model.metadata,
                                  Column('tag_id', Integer, ForeignKey('tag.id')),

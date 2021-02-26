@@ -21,7 +21,8 @@ let bindSubmit = function () {
             const xhr = createXhr('POST', '/similarity-result');
             xhr.addEventListener('load', function () {
                 console.dir(this.response);
-                location.reload();
+                document.getElementById('results').style.display = 'block';
+                // location.reload();
             });
             const result = {
                 'reference': document.getElementById('segment-reference').value,
