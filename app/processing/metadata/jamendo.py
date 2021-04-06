@@ -1,7 +1,11 @@
 import csv
 
 import click
+import requests
+from flask import current_app
 from flask.cli import with_appcontext
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 from tqdm import tqdm
 
 from app.database import Album, Artist, Tag, Track, TrackMetadata, db, needs_committing
@@ -62,8 +66,74 @@ def load_jamendo_metadata(input_file):
 
     db.session.commit()
 
-# def query_jamendo_api(batch_size):
-#     for track_metadata in db.session.query(TrackMetadata).filter(TrackMetadata.name==None):
+
+def get_http_session():
+    retry_strategy = Retry(total=3, backoff_factor=1, status_forcelist=[429, 500, 502, 503, 504])
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    http_session = requests.Session()
+    http_session.mount("https://", adapter)
+    http_session.mount("http://", adapter)
+    return http_session
+
+
+def query_jamendo_metadata(db_model, jamendo_entity, batch_size, http_session=None):
+    if http_session is None:
+        http_session = get_http_session()
+
+    url = f'https://api.jamendo.com/v3.0/{jamendo_entity}/'
+    # we need '==' instead of 'is' for None comparison in sqlalchemy
+    noname_rows = db.session.query(db_model).filter(db_model.name == None).all()
+    for rows in tqdm([noname_rows[pos:pos + batch_size] for pos in range(0, len(noname_rows), batch_size)],
+                     desc=jamendo_entity):
+
+        if db_model == TrackMetadata:
+            id_mapping = {row.streaming_id: row.id for row in rows}
+
+            def map_id(_id):
+                return id_mapping[_id]
+            ids = set(id_mapping.keys())
+        else:
+            def map_id(_id):
+                return _id
+            ids = {row.id for row in rows}
+
+        params = {
+            'client_id': current_app.config['JAMENDO_CLIENT_ID'],
+            'id[]': list(ids),
+            'limit': batch_size
+        }
+
+        response = http_session.get(url, params=params)
+        if response.status_code != 200:
+            response.raise_for_status()
+
+        response_json = response.json()
+        if response_json['headers']['code'] != 0:
+            raise RuntimeError(response_json['headers']['error_message'])
+
+        mappings = []
+        for result in response_json['results']:
+            mappings.append({
+                'id': map_id(result['id']),
+                'name': result['name']
+            })
+            ids.remove(result['id'])
+
+        for missed_id in ids:
+            mappings.append({
+                'id': map_id(missed_id),
+                'name': f'Deleted ({missed_id})'
+            })
+
+        db.session.bulk_update_mappings(db_model, mappings)
+        db.session.commit()
+
+
+def query_all_jamendo_metadata(batch_size):
+    http_session = get_http_session()
+    query_jamendo_metadata(Artist, 'artists', batch_size, http_session)
+    query_jamendo_metadata(Album, 'albums', batch_size, http_session)
+    query_jamendo_metadata(TrackMetadata, 'tracks', batch_size, http_session)
 
 
 @click.command('load-jamendo-metadata')
@@ -73,8 +143,10 @@ def load_jamendo_metadata_command(input_file):
     load_jamendo_metadata(input_file)
 
 
-@click.command('query-jamendo-api')
-@click.option('-b', '--batch-size', type=int, default=10)
+@click.command('query-jamendo-metadata')
+@click.option('-b', '--batch-size', type=int, default=None)
 @with_appcontext
-def query_jamendo_api(batch_size):
-    load_jamendo_metadata(batch_size)
+def query_jamendo_metadata_command(batch_size):
+    if batch_size is None:
+        batch_size = current_app.config['JAMENDO_BATCH_SIZE']
+    query_all_jamendo_metadata(batch_size)

@@ -96,7 +96,8 @@ flask load-id3-metadata
 #### Adding Jamendo metadata
 Clone or download metadata from [mtg-jamendo-dataset]((https://github.com/MTG/mtg-jamendo-dataset))
 ```shell
-flask load-jamendo-data path/to/mtg-jamendo-dataset/data/raw_30s_cleantags.tsv
+flask load-jamendo-metadata path/to/mtg-jamendo-dataset/data/raw_30s_cleantags.tsv
+flask query-jamendo-metadata
 ```
 
 Query Jamendo API for track, artist, album names

@@ -255,7 +255,7 @@ dense_1/kernel/read
 dense_1/bias
 dense_1/bias/read
 model/dense_1/MatMul
-model/dense_1/BiasAdd
+model/dense_1/BiasAdd   <- logits
 model/concat_3/axis
 model/concat_3
 model/concat_4/axis

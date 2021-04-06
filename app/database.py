@@ -168,7 +168,7 @@ track_metadata_tag_table = Table('track_metadata_tag', db.Model.metadata,
                                  )
 
 
-class NameMixin:
+class NameMixin(CommonMixin):
     name = Column(String, index=True)
 
     @classmethod
@@ -176,10 +176,10 @@ class NameMixin:
         return db.session.query(cls).filter_by(name=name).first()
 
     def __lt__(self, other):
-        return self.name < other.name
+        return (self.name is None, self.name) < (other.name is None, other.name)
 
 
-class TrackMetadata(CommonMixin, NameMixin, db.Model):
+class TrackMetadata(NameMixin, db.Model):
     __tablename__ = 'track_metadata'
     id = Column(Integer, ForeignKey('track.id'), primary_key=True)
     track = relationship('Track', back_populates='track_metadata')
@@ -207,7 +207,7 @@ class TrackMetadata(CommonMixin, NameMixin, db.Model):
         )).all()
 
 
-class Artist(CommonMixin, NameMixin, db.Model):
+class Artist(NameMixin, db.Model):
     __tablename__ = 'artist'
 
     tracks_metadata = relationship('TrackMetadata', back_populates='artist')
@@ -215,7 +215,7 @@ class Artist(CommonMixin, NameMixin, db.Model):
     albums = relationship('Album', back_populates='artist')
 
 
-class Album(CommonMixin, NameMixin, db.Model):
+class Album(NameMixin, db.Model):
     __tablename__ = 'album'
 
     tracks_metadata = relationship('TrackMetadata', back_populates='album')
@@ -224,7 +224,7 @@ class Album(CommonMixin, NameMixin, db.Model):
     artist = relationship('Artist', back_populates='albums')
 
 
-class Tag(CommonMixin, NameMixin, db.Model):
+class Tag(NameMixin, db.Model):
     __tablename__ = 'tag'
     group = Column(String, index=True)
 

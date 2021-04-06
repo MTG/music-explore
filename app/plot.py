@@ -152,7 +152,7 @@ def plot_segments_advanced(embeddings, tracks, segment_length):
         if group_id not in groups:
             groups[group_id] = len(groups)
 
-        fig.add_trace(go.Scattergl(
+        fig.add_trace(go.Scatter(
             x=track_embeddings[:, 0],
             y=track_embeddings[:, 1],
             mode='markers',
