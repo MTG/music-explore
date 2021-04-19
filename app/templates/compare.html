@@ -36,7 +36,8 @@
                 <option value="pca">PCA</option>
                 <option value="std-pca">STD-PCA</option>
                 <option value="tsne">t-SNE</option>
-                <option value="original">Original</option>
+                <option value="umap">UMAP</option>
+{#                <option value="original">Original</option>#}
             </select>
         </div>
 
@@ -66,7 +67,7 @@
             <div class="col-2">
                 <form id="form-data" class="">
                     <div class="form-group">
-                        <label class="" for="selector-tags">Tags</label>
+                        <label class="" for="selector-tags">Tags ({{ tags | length }})</label>
                         <select class="selectpicker form-control" id="selector-tags" multiple name="tags"
                                 data-live-search="true" data-actions-box="true">
                             {% for tag in tags %}
@@ -75,11 +76,11 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="selector-artists">Artists</label>
+                        <label for="selector-artists">Artists ({{ artists | length }})</label>
                         <select class="selectpicker form-control" id="selector-artists" multiple name="artists"
                                 data-live-search="true" data-actions-box="true">
                             {% for artist in artists %}
-                                <option value="{{ artist.id }}">{{ artist.name }}</option>
+                                <option value="{{ artist.id }}">{{ artist.name | safe }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -90,6 +91,17 @@
 
                 <form id="form-highlight">
                     Highlight groups
+                    <div class="form-group form-row">
+                        <select class="col selectpicker form-control" name="filter-entity">
+                            <option>Tag</option>
+                            <option>Artist</option>
+                            <option>Album</option>
+                            <option>Track</option>
+                        </select>
+                        <select class="col selectpicker form-control" multiple name="filter-items">
+                            <option>...</option>
+                        </select>
+                    </div>
                     <div class="form-group form-row">
                         <select class="col selectpicker form-control" name="filter-entity">
                             <option>Tag</option>

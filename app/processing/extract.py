@@ -7,7 +7,7 @@ from flask import current_app
 from flask.cli import with_appcontext
 from tqdm import tqdm
 
-from app.database import Track
+from app.database.base import Track
 from app.models import get_models
 
 SAMPLE_RATE = 16000

@@ -27,7 +27,8 @@
         <div>
             <button type="submit" class="btn btn-success mt-2" id="submit" disabled>Submit</button>
             <div id="results" style="display: none;">
-                {% for length in segments['lengths'] %} {{ length | round(3) }} {% endfor %}
+                <span id="model">{{ segments['model'] }}</span>
+                {% for distance in segments['distances'] %} {{ distance | round(3) }} {% endfor %}
             </div>
         </div>
     </div>

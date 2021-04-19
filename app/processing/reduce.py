@@ -10,7 +10,7 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from tqdm import tqdm
 
-from app.database import Track
+from app.database.base import Track
 from app.models import get_models
 
 
@@ -39,6 +39,12 @@ def reduce_pca(embeddings: Iterable[np.ndarray]):
 def reduce_tsne(embeddings: Iterable[np.ndarray]):
     projection = TSNE(n_components=2, random_state=0, verbose=True)
     # TODO: add n_input_dimension, as we don't need all pca as input to tsne
+    return reduce_generic(list(embeddings), projection)
+
+
+def reduce_umap(embeddings: Iterable[np.ndarray]):
+    from umap import UMAP
+    projection = UMAP(n_components=2, init='random', random_state=0)
     return reduce_generic(list(embeddings), projection)
 
 

@@ -4,6 +4,7 @@ from .index_embeddings import index_all_embeddings_command, index_embeddings_com
 from .metadata.id3 import load_id3_metadata_command
 from .metadata.jamendo import load_jamendo_metadata_command, query_jamendo_metadata_command
 from .reduce import reduce_all_command, reduce_command
+from .transform import aggregate_all_command, aggregate_command
 
 
 def init_app(app):
@@ -18,3 +19,5 @@ def init_app(app):
     app.cli.add_command(load_jamendo_metadata_command)
     app.cli.add_command(load_id3_metadata_command)
     app.cli.add_command(query_jamendo_metadata_command)
+    app.cli.add_command(aggregate_command)
+    app.cli.add_command(aggregate_all_command)

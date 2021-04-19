@@ -2,7 +2,7 @@ from pathlib import Path
 
 from flask import Blueprint, current_app, url_for
 
-from .database import Segment, Track
+from .database.base import Segment, Track
 
 bp = Blueprint('providers', __name__, url_prefix='/audio')
 

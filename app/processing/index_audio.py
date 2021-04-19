@@ -6,7 +6,7 @@ from flask import current_app
 from flask.cli import with_appcontext
 from tqdm import tqdm
 
-from app.database import Track, db, needs_committing
+from app.database.base import Track, db, needs_committing
 
 
 def index_audio(input_dir, wildcard='*.mp3'):

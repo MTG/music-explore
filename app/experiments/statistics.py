@@ -8,7 +8,8 @@ import pandas as pd
 from flask.cli import with_appcontext
 from tqdm import tqdm
 
-from app.database import Tag, Track
+from app.database.base import Track
+from app.database.metadata import Tag
 from app.models import Model, get_models
 
 FLOAT_FORMAT = '%.4f'

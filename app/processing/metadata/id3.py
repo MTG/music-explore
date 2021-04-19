@@ -6,7 +6,8 @@ from flask import current_app
 from flask.cli import with_appcontext
 from tqdm import tqdm
 
-from app.database import Album, Artist, Tag, Track, TrackMetadata, db, needs_committing
+from app.database.base import Track, db, needs_committing
+from app.database.metadata import Album, Artist, Tag, TrackMetadata
 
 
 def load_id3_metadata(n_tracks=None):

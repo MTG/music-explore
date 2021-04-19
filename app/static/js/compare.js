@@ -119,6 +119,18 @@ let bindTagSelector = function (formId) {
     });
 };
 
+let bindFilters = function () {
+    document.getElementsByName('filter-entity').forEach(function (element) {
+        const itemsElement = this.parentNode.parentNode.querySelector('select[name=filter-items]')
+        element.addEventListener('change', function (e) {
+            itemsElement.options.length = 0
+            itemsElement.options.appendChild(new Option(`Option for ${element.value}`))
+        })
+    });
+        a.parentNode.parentNode.querySelector('select[name=filter-items]')
+
+};
+
 $(function () {
     // init Bootstrap/Popper tooltips
     $('[data-toggle="tooltip"]').tooltip();

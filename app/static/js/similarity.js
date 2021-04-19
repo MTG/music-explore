@@ -27,7 +27,8 @@ let bindSubmit = function () {
             const result = {
                 'reference': document.getElementById('segment-reference').value,
                 'choices': Array.from(document.getElementsByName('segment-choice'), x => x.value),
-                'selected': selectedOption.value
+                'selected': selectedOption.value,
+                'model': document.getElementById('model').innerHTML
             }
             console.log(result);
             xhr.send(JSON.stringify(result));

@@ -82,6 +82,14 @@ class Model:
 
         return [track.get_embeddings_from_file(embeddings_dir)[:, dimensions] for track in tracks]
 
+    def get_embeddings_from_aggrdata(self, tracks, dimensions=None):
+        embeddings_file = Path(current_app.config['AGGRDATA_DIR']) / f'{self}.npy'
+        embeddings = np.load(embeddings_file, mmap_mode='r')
+        if dimensions is None:
+            return [embeddings[track.get_aggrdata_slice()] for track in tracks]
+
+        return [embeddings[track.get_aggrdata_slice(self.length), dimensions] for track in tracks]
+
 
 class Models:
     """Wrapper for the info from models file: detailed description of models, datasets, etc."""
@@ -111,12 +119,15 @@ class Models:
 
     def get_all_offline_projections(self):
         """Returns all models that are projections"""
-        for projection in self.data['offline_projections']:
+        for projection in self.data['offline-projections']:
             yield from self.get_offline_projections(projection)
 
     def get_all_offline(self):
         yield from self.get_combinations()
         yield from self.get_all_offline_projections()
+
+    def get_comparable_models(self, length):
+        ...
 
 
 def get_models():

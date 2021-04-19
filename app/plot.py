@@ -5,9 +5,10 @@ import plotly
 import plotly.graph_objects as go
 from flask import Blueprint, request
 
-from .database import Track, TrackMetadata
+from .database.base import Track
+from .database.metadata import TrackMetadata
 from .models import Model, get_models
-from .processing.reduce import reduce_tsne
+from .processing.reduce import reduce_tsne, reduce_umap
 
 bp = Blueprint('plot', __name__)
 
@@ -98,7 +99,7 @@ def get_plotly_fig(plot_type, embeddings, tracks, model):
 def plot(plot_type, dataset, architecture, layer, n_tracks, projection, x, y):
     try:
         models_data = get_models().data
-        tsne_dynamic = 'tsne' not in models_data['offline_projections'] and projection == 'tsne'
+        tsne_dynamic = 'tsne' not in models_data['offline-projections'] and projection == 'tsne'
 
         # TODO: maybe validate dataset-model-layer?
         if projection == 'original':
@@ -113,8 +114,9 @@ def plot(plot_type, dataset, architecture, layer, n_tracks, projection, x, y):
 
         dimensions = None if tsne_dynamic else [x, y]  # TODO: load limited amount of dimensions for tsne
 
-        embeddings = model.get_embeddings_from_annoy(tracks, dimensions)
+        # embeddings = model.get_embeddings_from_annoy(tracks, dimensions)
         # embeddings = model.get_embeddings_from_file(tracks, dimensions)
+        embeddings = model.get_embeddings_from_aggrdata(tracks, dimensions)
 
         if tsne_dynamic:  # TODO: try moving tsne to browser
             embeddings = reduce_tsne(embeddings)
@@ -161,8 +163,8 @@ def plot_segments_advanced(embeddings, tracks, segment_length):
             hoverinfo='text',
             name=track_text,
             showlegend=False,
-            # marker={'color': scale[groups[group_id]]}
-            marker={'color': scale[0]}
+            marker={'color': scale[groups[group_id]]}
+            # marker={'color': scale[0]}
         ))
     return fig
 
@@ -184,9 +186,22 @@ def plot_advanced():
     tracks_meta = TrackMetadata.get_by_tags_and_artists(tag_ids, artist_ids)
 
     tracks = [track_meta.track for track_meta in tracks_meta]
-    embeddings = model.get_embeddings_from_file(tracks, [0, 1])
+    embeddings = get_embeddings_and_project(model, tracks)
 
     figure = plot_segments_advanced(embeddings, tracks, model.length)
     figure.update_layout(margin=PLOTLY_MARGINS)
 
     return json.dumps(figure, cls=plotly.utils.PlotlyJSONEncoder)
+
+
+def get_embeddings_and_project(model, tracks):
+    if 'pca' in model.projection:
+        return model.get_embeddings_from_aggrdata(tracks, [0, 1])
+
+    embeddings = model.with_projection('pca').get_embeddings_from_aggrdata(tracks, slice(20))
+
+    if model.projection == 'tsne':
+        return reduce_tsne(embeddings)
+
+    if model.projection == 'umap':
+        return reduce_umap(embeddings)

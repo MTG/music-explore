@@ -1,7 +1,6 @@
 from flask import Blueprint, render_template
 
-from app.database import Artist, Tag
-
+from .database.metadata import Artist, Tag
 from .models import get_models
 from .similarity import get_segments
 

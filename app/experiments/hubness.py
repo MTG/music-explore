@@ -6,7 +6,7 @@ import pandas as pd
 import plotly.express as px
 from flask.cli import with_appcontext
 
-from app.database import Track
+from app.database.base import Track
 from app.models import get_models
 
 from .statistics import FLOAT_FORMAT

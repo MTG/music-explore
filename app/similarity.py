@@ -1,16 +1,18 @@
 import csv
 import random
 from pathlib import Path
+from time import time
+from typing import Optional
 
 from flask import Blueprint, current_app, request
 
-from .database import Segment, Segmentation
+from .database.base import Segment, Segmentation
 from .models import Model, get_models
 
 bp = Blueprint('similarity', __name__)
 
 
-def get_segments(strategy: str = 'semirandom', model: Model = None):
+def get_segments(strategy: str = 'semirandom', model: Optional[Model] = None):
     length = 3000
 
     if strategy == 'static':
@@ -52,18 +54,19 @@ def get_segments(strategy: str = 'semirandom', model: Model = None):
         random_segments.append(closest_segment)
         random.shuffle(random_segments)
 
-        lengths = [index.get_distance(ref_segment_id, segment.id) for segment in random_segments]
+        distances = [index.get_distance(ref_segment_id, segment.id) for segment in random_segments]
 
         return {
             'reference': ref_segment,
             'choices': random_segments,
             'closest': closest_segment,
-            'lengths': lengths
+            'distances': distances,
+            'model': model
         }
 
 
 def get_id(full_id: str):
-    return full_id.split('/')[2] if full_id else full_id
+    return full_id.split('/')[2] if full_id else full_id  # segment/3000/1100 -> 1100, '' -> ''
 
 
 @bp.route('/similarity-result', methods=['POST'])
@@ -75,12 +78,12 @@ def process_result():
     experiments_dir = Path(current_app.config['EXPERIMENTS_DIR'])
     length = reference.split('/')[1]
 
-    results = [get_id(reference)]
-    results += [get_id(selected)]
+    results = [int(time()), request.json['model'], get_id(reference), get_id(selected)]
     results += [get_id(choice) for choice in choices if choice != selected]
 
     results_file = experiments_dir / f'{length}.csv'
     results_file.parent.mkdir(exist_ok=True)
+
     with results_file.open('a') as fp:
         writer = csv.writer(fp)
         writer.writerow(results)

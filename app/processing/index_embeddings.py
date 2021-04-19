@@ -7,7 +7,7 @@ from flask import current_app
 from flask.cli import with_appcontext
 from tqdm import tqdm
 
-from app.database import Segmentation, Track, db, needs_committing
+from app.database.base import Segmentation, Track, db, needs_committing
 from app.models import get_models
 
 

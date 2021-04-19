@@ -8,7 +8,8 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from tqdm import tqdm
 
-from app.database import Album, Artist, Tag, Track, TrackMetadata, db, needs_committing
+from app.database.base import Track, db, needs_committing
+from app.database.metadata import Album, Artist, Tag, TrackMetadata
 
 TAG_HYPHEN = '---'
 
@@ -82,7 +83,7 @@ def query_jamendo_metadata(db_model, jamendo_entity, batch_size, http_session=No
 
     url = f'https://api.jamendo.com/v3.0/{jamendo_entity}/'
     # we need '==' instead of 'is' for None comparison in sqlalchemy
-    noname_rows = db.session.query(db_model).filter(db_model.name == None).all()
+    noname_rows = db.session.query(db_model).filter(db_model.name == None).all()  # noqa: E711
     for rows in tqdm([noname_rows[pos:pos + batch_size] for pos in range(0, len(noname_rows), batch_size)],
                      desc=jamendo_entity):
 
