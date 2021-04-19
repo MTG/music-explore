@@ -34,7 +34,7 @@ def extract(input_dir, output_dir, algorithm, model_file, layer, accumulate=Fals
                                    accumulate=accumulate)(audio)
             if not dry:
                 embeddings_file.parent.mkdir(parents=True, exist_ok=True)
-                np.save(embeddings_file, embeddings)
+                np.save(embeddings_file, embeddings.astype(np.float16))
 
     logging.info('Done!')
 

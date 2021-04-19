@@ -19,6 +19,14 @@ def aggregate(model: Model, output_file: Path, n_tracks: Optional[int] = None):
     np.save(output_file, embeddings)
 
 
+@click.command('embeddings-to-float16')
+@with_appcontext
+def embeddings_to_float16():
+    embeddings_dir = Path(current_app.config['DATA_DIR'])
+    for embeddings_file in tqdm(sorted(embeddings_dir.rglob('*.npy'))):
+        np.save(embeddings_file, np.load(embeddings_file).astype(np.float16))
+
+
 @click.command('aggregate')
 @click.argument('dataset', type=str)
 @click.argument('architecture', type=str)
