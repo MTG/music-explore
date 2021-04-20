@@ -1,9 +1,6 @@
 import logging
-from pathlib import Path
 
 import click
-from annoy import AnnoyIndex
-from flask import current_app
 from flask.cli import with_appcontext
 from tqdm import tqdm
 
@@ -11,28 +8,26 @@ from app.database.base import Segmentation, Track, db, needs_committing
 from app.models import get_models
 
 
-def index_embeddings(input_dir, index_file, n_dimensions, segment_length,
-                     n_trees=16, n_tracks=None, dry=False, force=False):
-    embeddings_index = AnnoyIndex(n_dimensions, current_app.config['ANNOY_DISTANCE'])
-    index_file = Path(index_file)
+def index_embeddings(model, n_trees=16, n_tracks=None, dry=False, force=False):
+    embeddings_index = model.get_annoy_index(load=False)
 
-    if index_file.exists() and not force:
-        print(f'Index {index_file} already exists, skipping')
+    if model.index_file.exists() and not force:
+        print(f'Index {model.index_file} already exists, skipping')
         return
 
     current_index = 0
     session_size = 0
 
-    logging.info(f'Loading embeddings in {input_dir}...')
+    logging.info(f'Loading {model}...')
     for track in tqdm(Track.get_all(limit=n_tracks)):
-        embeddings = track.get_embeddings_from_file(input_dir)
+        embeddings = track.get_embeddings_from_file(model.data_dir)
         total_segments = len(embeddings)
 
         for position, embedding in enumerate(embeddings):
             embeddings_index.add_item(current_index + position, embedding)  # annoy
 
-        if not track.has_segmentation(segment_length):
-            db.session.add(Segmentation(track=track, length=segment_length, start_id=current_index,
+        if not track.has_segmentation(model.length):
+            db.session.add(Segmentation(track=track, length=model.length, start_id=current_index,
                                         stop_id=current_index + total_segments))
             session_size += 1
 
@@ -49,23 +44,17 @@ def index_embeddings(input_dir, index_file, n_dimensions, segment_length,
     embeddings_index.build(n_trees, n_jobs=-1)
 
     if not dry:
-        index_file.parent.mkdir(parents=True, exist_ok=True)
-        embeddings_index.save(str(index_file))
+        model.index_file.parent.mkdir(parents=True, exist_ok=True)
+        embeddings_index.save(str(model.index_file))
 
     logging.info('Done!')
 
 
 def index_all_embeddings(n_trees=16, n_tracks=None, dry=False, force=False):
-    app = current_app
-    data_dir = Path(app.config['DATA_DIR'])
-
     models = get_models()
     for model in models.get_all_offline():
         index_embeddings(
-            data_dir / str(model),
-            model.index_file,
-            model.n_dimensions,
-            model.architecture_data['segment-length'],
+            model,
             n_trees, n_tracks, dry, force
         )
 

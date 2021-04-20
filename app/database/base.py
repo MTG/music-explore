@@ -71,7 +71,7 @@ class Track(CommonMixin, db.Model):
 
     def get_embeddings_from_file(self, embeddings_dir) -> np.ndarray:
         path = Path(embeddings_dir) / self.get_embeddings_filename()
-        return np.load(str(path))
+        return np.load(str(path)).astype(np.float16)
 
     def get_aggrdata_slice(self, length) -> slice:
         s = self._get_segmentation(length)

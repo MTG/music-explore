@@ -59,8 +59,9 @@ def reduce_std_pca(embeddings: Iterable[np.ndarray], batch_size=None):
 
 REDUCE = {
     'pca': reduce_pca,
+    'std-pca': reduce_std_pca,
     'tsne': reduce_tsne,
-    'std-pca': reduce_std_pca
+    'umap': reduce_umap
 }
 
 

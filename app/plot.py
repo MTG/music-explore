@@ -114,9 +114,7 @@ def plot(plot_type, dataset, architecture, layer, n_tracks, projection, x, y):
 
         dimensions = None if tsne_dynamic else [x, y]  # TODO: load limited amount of dimensions for tsne
 
-        # embeddings = model.get_embeddings_from_annoy(tracks, dimensions)
-        # embeddings = model.get_embeddings_from_file(tracks, dimensions)
-        embeddings = model.get_embeddings_from_aggrdata(tracks, dimensions)
+        embeddings = model.get_embeddings(tracks, dimensions)
 
         if tsne_dynamic:  # TODO: try moving tsne to browser
             embeddings = reduce_tsne(embeddings)
@@ -196,9 +194,9 @@ def plot_advanced():
 
 def get_embeddings_and_project(model, tracks):
     if 'pca' in model.projection:
-        return model.get_embeddings_from_aggrdata(tracks, [0, 1])
+        return model.get_embeddings(tracks, [0, 1])
 
-    embeddings = model.with_projection('pca').get_embeddings_from_aggrdata(tracks, slice(20))
+    embeddings = model.with_projection('pca').get_embeddings(tracks, slice(20))
 
     if model.projection == 'tsne':
         return reduce_tsne(embeddings)

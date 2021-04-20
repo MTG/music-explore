@@ -40,6 +40,10 @@ class Model:
         return Path(current_app.config['INDEX_DIR']) / f'{self}.ann'
 
     @property
+    def data_dir(self):
+        return Path(current_app.config['DATA_DIR']) / str(self)
+
+    @property
     def length(self):
         return self.architecture_data['segment-length']
 
@@ -57,10 +61,11 @@ class Model:
         new_model.projection = None
         return new_model
 
-    def get_annoy_index(self):
+    def get_annoy_index(self, load=True):
         if not hasattr(self, 'index'):
-            self.index = AnnoyIndex(self.layer_data['size'], current_app.config['ANNOY_DISTANCE'])
-            self.index.load(str(self.index_file))
+            self.index = AnnoyIndex(self.n_dimensions, current_app.config['ANNOY_DISTANCE'])
+            if load:
+                self.index.load(str(self.index_file))
         return self.index
 
     def get_embeddings_from_annoy(self, tracks, dimensions=None):
@@ -76,11 +81,10 @@ class Model:
 
     def get_embeddings_from_file(self, tracks, dimensions=None):
         # alternative way of reading from file, is 2x faster
-        embeddings_dir = Path(current_app.config['DATA_DIR']) / str(self)
         if dimensions is None:
-            return [track.get_embeddings_from_file(embeddings_dir) for track in tracks]
+            return [track.get_embeddings_from_file(self.data_dir) for track in tracks]
 
-        return [track.get_embeddings_from_file(embeddings_dir)[:, dimensions] for track in tracks]
+        return [track.get_embeddings_from_file(self.data_dir)[:, dimensions] for track in tracks]
 
     def get_embeddings_from_aggrdata(self, tracks, dimensions=None):
         embeddings_file = Path(current_app.config['AGGRDATA_DIR']) / f'{self}.npy'
@@ -89,6 +93,9 @@ class Model:
             return [embeddings[track.get_aggrdata_slice()] for track in tracks]
 
         return [embeddings[track.get_aggrdata_slice(self.length), dimensions] for track in tracks]
+
+    def get_embeddings(self, tracks, dimensions=None):
+        return self.get_embeddings_from_file(tracks, dimensions)
 
 
 class Models:
