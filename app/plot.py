@@ -3,7 +3,7 @@ import json
 import numpy as np
 import plotly
 import plotly.graph_objects as go
-from flask import Blueprint, request
+from flask import Blueprint, current_app, request
 
 from .database.base import Track
 from .database.metadata import TrackMetadata
@@ -33,7 +33,7 @@ def plot_averages(embeddings, tracks):
         hovertext=[track.track_metadata.to_text() for track in tracks],
         hoverinfo='text',
         ids=[track.full_id for track in tracks],
-        marker_color=[track.track_metadata.artist_id for track in tracks]
+        # marker_color=[track.track_metadata.artist_id for track in tracks]
     ))
     return fig
 
@@ -66,7 +66,7 @@ def plot_segments(embeddings, tracks, segment_length, show_trajectories=False):
             y=y,
             mode=mode,
             ids=[segment.full_id for segment in segments],
-            hovertext=[segment.to_text() for segment in segments],
+            hovertext=[f'{track_text} ({segment.to_text()})' for segment in segments],
             hoverinfo='text',
             name=track_text,
             showlegend=False,
@@ -98,13 +98,12 @@ def get_plotly_fig(plot_type, embeddings, tracks, model):
           '<projection>/<int:x>/<int:y>')
 def plot(plot_type, dataset, architecture, layer, n_tracks, projection, x, y):
     try:
-        models_data = get_models().data
-        tsne_dynamic = 'tsne' not in models_data['offline-projections'] and projection == 'tsne'
+        dynamic_projection = projection in ['tsne', 'umap']
 
         # TODO: maybe validate dataset-model-layer?
         if projection == 'original':
             model_projection = None
-        elif tsne_dynamic:  # t-sne uses pca as input
+        elif dynamic_projection:  # t-sne and umap uses pca as input
             model_projection = 'pca'
         else:  # 'pca', 'std-pca'
             model_projection = projection
@@ -112,12 +111,15 @@ def plot(plot_type, dataset, architecture, layer, n_tracks, projection, x, y):
 
         tracks = Track.get_all(limit=n_tracks, random=False)
 
-        dimensions = None if tsne_dynamic else [x, y]  # TODO: load limited amount of dimensions for tsne
+        dimensions = slice(current_app.config['PCA_DIMS']) if dynamic_projection else [x, y]
 
-        embeddings = model.get_embeddings(tracks, dimensions)
+        embeddings = model.get_embeddings(tracks, dimensions=dimensions)
 
-        if tsne_dynamic:  # TODO: try moving tsne to browser
+        # TODO: time the projection, alert user if it is too slow?
+        if projection == 'tsne':
             embeddings = reduce_tsne(embeddings)
+        elif projection == 'umap':
+            embeddings = reduce_umap(embeddings)
 
         figure = get_plotly_fig(plot_type, embeddings, tracks, model)
 
@@ -138,65 +140,107 @@ def plot(plot_type, dataset, architecture, layer, n_tracks, projection, x, y):
     return json.dumps(figure, cls=plotly.utils.PlotlyJSONEncoder)
 
 
-def plot_segments_advanced(embeddings, tracks, segment_length):
+def plot_segments_advanced(embeddings, tracks, segment_length, sparse_factor, highlight_ids, use_webgl):
     fig = go.Figure()
     scale = plotly.colors.qualitative.Plotly
 
-    groups = {}
+    # groups = {}
 
     for track_embeddings, track in zip(embeddings, tracks):
-        segments = track.get_segments(segment_length)
+        segments = track.get_segments(segment_length, sparse_factor)
         track_text = track.track_metadata.to_text()
 
-        group_id = track.track_metadata.artist_id
-        if group_id not in groups:
-            groups[group_id] = len(groups)
+        # group_id = track.track_metadata.artist_id
+        # if group_id not in groups:
+        #     groups[group_id] = len(groups)
 
-        fig.add_trace(go.Scatter(
+        scatter = go.Scattergl if use_webgl else go.Scatter
+        fig.add_trace(scatter(
             x=track_embeddings[:, 0],
             y=track_embeddings[:, 1],
             mode='markers',
             ids=[segment.full_id for segment in segments],
-            hovertext=[segment.to_text() for segment in segments],
+            hovertext=[f'{track_text} ({segment.to_text()})' for segment in segments],
             hoverinfo='text',
             name=track_text,
             showlegend=False,
-            marker={'color': scale[groups[group_id]]}
+            # marker={'color': scale[groups[group_id]]}
             # marker={'color': scale[0]}
+            marker={'color': scale[1] if track.id in highlight_ids else scale[0]}
         ))
+
     return fig
+
+
+def _append(result: dict, name: str, value: str):
+    if name not in result:
+        result[name] = []
+    result[name].append(value)
+
+
+def get_highlight_groups(tracks_meta):
+    results = {
+        'artist': {},
+        'album': {},
+        'track': {},
+        'tag': {}
+    }
+    for track_meta in tracks_meta:
+        _append(results['artist'], track_meta.artist.name, track_meta.id)
+        _append(results['album'], track_meta.album.name, track_meta.id)
+        _append(results['track'], track_meta.name, track_meta.id)
+        for tag in track_meta.tags:
+            _append(results['tag'], tag.name, track_meta.id)
+    return results
 
 
 @bp.route('/plot-advanced', methods=['POST'])
 def plot_advanced():
-    request_model = request.json['model']
-    request_filters = request.json['filters']
-
-    projection = request_model['projection']
-    if projection == 'original':
-        projection = None
-
-    model = Model(get_models().data, request_model['dataset'], request_model['architecture'],
-                  request_model['layer'], projection)
-
-    tag_ids = [int(tag) for tag in request_filters['tags']]
-    artist_ids = [int(artist) for artist in request_filters['artists']]
+    # tracks
+    data_query = request.json['data']
+    tag_ids = [int(tag) for tag in data_query['tags']]
+    artist_ids = [int(artist) for artist in data_query['artists']]
     tracks_meta = TrackMetadata.get_by_tags_and_artists(tag_ids, artist_ids)
-
     tracks = [track_meta.track for track_meta in tracks_meta]
-    embeddings = get_embeddings_and_project(model, tracks)
 
-    figure = plot_segments_advanced(embeddings, tracks, model.length)
-    figure.update_layout(margin=PLOTLY_MARGINS)
+    sparse_factor = int(data_query['sparse'])
+    use_webgl = data_query['webgl']
 
-    return json.dumps(figure, cls=plotly.utils.PlotlyJSONEncoder)
+    # highlight
+    highlight_ids = request.json['highlight']
+    # logging.info(highlight_ids)
+
+    # models
+    result_plots = {}
+    for plot_side, model_query in request.json['models'].items():
+        projection = model_query['projection']
+        if projection == 'original':
+            projection = None
+
+        model = Model(get_models().data, model_query['dataset'], model_query['architecture'],
+                      model_query['layer'], projection)
+
+        embeddings = get_embeddings_and_project(model, tracks, sparse_factor)
+
+        figure = plot_segments_advanced(embeddings, tracks, model.length, sparse_factor, highlight_ids, use_webgl)
+        figure.update_layout(margin=PLOTLY_MARGINS)
+        # result_plots[plot_side] = json.dumps(figure, cls=plotly.utils.PlotlyJSONEncoder)
+        result_plots[plot_side] = figure.to_dict()
+
+    highlight_groups = get_highlight_groups(tracks_meta)
+
+    return json.dumps({
+        'plots': result_plots,
+        'highlight': highlight_groups
+    }, cls=plotly.utils.PlotlyJSONEncoder)
 
 
-def get_embeddings_and_project(model, tracks):
+def get_embeddings_and_project(model, tracks, sparse_factor):
     if 'pca' in model.projection:
-        return model.get_embeddings(tracks, [0, 1])
+        return model.get_embeddings(tracks, sparse_factor, [0, 1])
 
-    embeddings = model.with_projection('pca').get_embeddings(tracks, slice(20))
+    embeddings = model.with_projection('pca').get_embeddings(
+        tracks, sparse_factor, slice(current_app.config['PCA_DIMS']))
 
     if model.projection == 'tsne':
         return reduce_tsne(embeddings)

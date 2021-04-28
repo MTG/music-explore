@@ -52,7 +52,8 @@
                     ('original', 'Original', 'Select 2 tags or embedding layers to visualize on X and Y axis'),
                     ('pca', 'PCA', 'Select principal components to be visualized'),
                     ('std-pca', 'STD-PCA', 'Select principal components to be visualized'),
-                    ('tsne', 't-SNE', 'Use 2D t-SNE. Best used with N < 50, becomes slow for higher numbers')],
+                    ('tsne', 't-SNE', 'Use 2D t-SNE. Best used with N < 50, becomes slow for higher numbers'),
+                    ('umap', 'UMAP', 'Use UMAP. Best used with N < 50, becomes slow for higher numbers')],
                     'projection', 'btn-info', 'Projection') }}
                 </div>
 
@@ -109,7 +110,7 @@
             <div class="row justify-content-center">
                 <audio id="audio" controls></audio>
             </div>
-            <div class="row justify-content-center" id="track-info"></div>
+            <div class="row justify-content-center text-center" id="track-info"></div>
 
         </div>
     </div>

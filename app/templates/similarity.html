@@ -4,10 +4,10 @@
 {% block content %}
 <div class="container">
     <audio id="audio" controls style="display: none"></audio>
-    <div class="row">
+    <div class="row justify-content-center">
         <h4>Which music segment is the most similar to the reference?</h4>
     </div>
-    <div class="row">
+    <div class="row justify-content-center">
         <div>
             <button type="button" class="btn btn-secondary" id="segment-reference" value="{{ segments['reference'].full_id }}">
                 <i class="fas fa-2x fa-play"></i></button> :
@@ -23,14 +23,12 @@
             </div>
         </div>
     </div>
-    <div class="row">
-        <div>
-            <button type="submit" class="btn btn-success mt-2" id="submit" disabled>Submit</button>
-            <div id="results" style="display: none;">
-                <span id="model">{{ segments['model'] }}</span>
-                {% for distance in segments['distances'] %} {{ distance | round(3) }} {% endfor %}
-            </div>
-        </div>
+    <div class="row justify-content-center">
+        <button type="submit" class="btn btn-success mt-2" id="submit" disabled>Submit</button>
+    </div>
+    <div class="row text-center" id="results" style="display: none;">
+        <span id="model">{{ segments['model'] }}</span>
+        {% for distance in segments['distances'] %} {{ distance | round(3) }} {% endfor %}
     </div>
 </div>
 {% endblock %}

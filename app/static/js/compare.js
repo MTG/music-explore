@@ -1,54 +1,82 @@
-let getFormData = function (formId) {
-    const form = document.getElementById(formId);
-    const formData = new FormData(form);
-    let result = {};
-    for (const key of formData.keys()) {
-        const values = formData.getAll(key);
-        result[key] = values.length === 1 ? values[0] : values;
-        console.dir(formElement);
-        console.dir();
-    }
-    console.log('dimensions ' + formData.getAll('dimensions'));
-
-    return Object.fromEntries((new FormData(form)).entries());
+const otherSide = {
+    left: 'right',
+    right: 'left'
 };
 
-let loadPlot = function (side, otherSide) {
-    const model = new FormData(document.getElementById(`form-${side}`));
+let loadPlot = function (sides, ) {
     const data = new FormData(document.getElementById('form-data'));
+    const highlight = new FormData(document.getElementById('form-highlight'));
 
-    const requestData = {
-        model: {
-            architecture: model.get('architecture'),
-            dataset: model.get('dataset'),
-            layer: model.get('layer'),
-            projection: model.get('projection'),
-            dimensions: model.getAll('dimensions'),
-        },
-        // Data
-        filters: {
+    let requestData = {
+        models: {},
+        data: {
             tags: data.getAll('tags'),
-            artists: data.getAll('artists')
+            artists: data.getAll('artists'),
+            sparse: data.get('sparse'),
+            webgl: document.getElementById('check-webgl').checked
         }
     };
 
+    let ids = [];
+    for (const values of highlight.getAll('highlight-items')) {
+        ids = ids.concat(JSON.parse(values))
+    }
+    requestData.highlight = [...new Set(ids)];  // TODO: read about ellipsis in JS
+
+    for(const side of sides){
+        const model = new FormData(document.getElementById(`form-${side}`));
+        requestData.models[side] = {
+            architecture: model.get('architecture'),
+            dataset: model.get('dataset'),
+            layer: model.get('layer'),
+            projection: model.get('projection')
+        }
+    }
+
     let request = createXhr('POST', '/plot-advanced');
     request.addEventListener('load', function () {
-        const plotId = `plot-${side}`;
-        Plotly.newPlot(plotId, this.response, {dragmode: 'select'}, {responsive: true});
-        bindCoupledHover(plotId, `plot-${otherSide}`);
-        bindCoupledSelect(plotId, `plot-${otherSide}`);
-        bindAudio(plotId, localStorage.getItem('audio'));
+        const response = this.response;
+        console.dir(response);
+
+        for(const side of sides) {  // not sure if better to use the sides, or iterate on returned result
+            const plotId = `plot-${side}`;
+            const otherPlotId = `plot-${otherSide[side]}`;
+
+            let layout = response.plots[side].layout;
+            layout['dragmode'] = 'lasso';
+            Plotly.newPlot(plotId, response.plots[side].data, layout, {responsive: true});
+
+            // TODO: only do bindings when there is equal total number of points in both graphs -> they are comparable
+            bindCoupledHover(plotId, otherPlotId);
+            bindCoupledSelect(plotId, otherPlotId);
+            bindAudio(plotId, localStorage.getItem('audio'));
+        }
+
+        bindHighlightData(response.highlight)
     });
     request.send(JSON.stringify(requestData));
 };
 
-let bindSubmit = function (formId, sides) {
+let bindHighlightData = function (data) {
+    const entityFilter = document.getElementById('highlight-entity');
+    const itemsFilter = document.getElementById('highlight-items');
+    entityFilter.addEventListener('change', function (event) {
+        itemsFilter.options.length = 0;
+        const entity = this.value;
+        if (entity) {
+            for (const [text, values] of Object.entries(data[entity])) {
+                itemsFilter.add(new Option(text, JSON.stringify(values)));
+            }
+        }
+        $(itemsFilter).selectpicker('refresh');  // necessary jquery, hopefully selectpicker will drop jquery
+    })
+}
+
+let bindSubmit = function (formId, sides, cb) {
     document.getElementById(formId).addEventListener('submit', function (event) {
         event.preventDefault();
-        for (const [side, otherSide] of Object.entries(sides)) {
-            loadPlot(side, otherSide);
-        }
+        if (cb) cb();  // optional code to execute before loading plot
+        loadPlot(sides);
     });
 };
 
@@ -71,7 +99,7 @@ let bindCoupledSelect = function (src, dst) {
 
     let selectHandler = function (event) {
         let opacities = [];
-        console.dir(event);
+        // console.dir(event);
         let somethingSelected = false;
         for (const curve of plotDiv.data) {
             let curveOpacities = new Array(curve.ids.length).fill(0.2);
@@ -81,7 +109,7 @@ let bindCoupledSelect = function (src, dst) {
             }
             opacities.push(curveOpacities);
         }
-        console.dir(opacities);
+        // console.dir(opacities);
         if (somethingSelected) {
             Plotly.restyle(dst, 'marker.opacity', opacities);
         } else {
@@ -135,12 +163,20 @@ $(function () {
     // init Bootstrap/Popper tooltips
     $('[data-toggle="tooltip"]').tooltip();
 
-    bindSubmit('form-left', {'left': 'right'});
-    bindSubmit('form-right', {'right': 'left'});
-    bindSubmit('form-data', {'left': 'right', 'right': 'left'});
+    bindSubmit('form-left', ['left']);
+    bindSubmit('form-right', ['right']);
+    bindSubmit('form-data', ['left', 'right'], function () {
+        console.log('highlight reset');
+        document.getElementById('highlight-entity').value = '';
+        document.getElementById('highlight-items').options.length = 0;
+        // necessary evil
+        $('#highlight-entity').selectpicker('refresh');
+        $('#highlight-items').selectpicker('refresh');
+    });
+    bindSubmit('form-highlight', ['left', 'right']);
 
-    bindTagSelector('form-left');
-    bindTagSelector('form-right');
+    // bindTagSelector('form-left');
+    // bindTagSelector('form-right');
 
     document.getElementById('audio').volume = 0.5;
 });

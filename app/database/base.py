@@ -31,6 +31,10 @@ class CommonMixin:
         return db.session.query(cls).filter(cls.id == _id).first()
 
     @classmethod
+    def get_by_ids(cls, _ids: list):
+        return db.session.query(cls).filter(cls.id.in_(_ids))
+
+    @classmethod
     def get_all(cls, limit=None, random=False):
         query = db.session.query(cls)
 
@@ -61,8 +65,8 @@ class Track(CommonMixin, db.Model):
     def _get_segmentation(self, length):
         return db.session.query(Segmentation).filter_by(id=self.id, length=length).first()
 
-    def get_segments(self, length):
-        return self._get_segmentation(length).get_segments()
+    def get_segments(self, length, sparse_factor=1):
+        return self._get_segmentation(length).get_segments(sparse_factor)
 
     # embeddings without annoy
 
@@ -73,9 +77,9 @@ class Track(CommonMixin, db.Model):
         path = Path(embeddings_dir) / self.get_embeddings_filename()
         return np.load(str(path)).astype(np.float16)
 
-    def get_aggrdata_slice(self, length) -> slice:
+    def get_aggrdata_slice(self, length, sparse_factor) -> slice:
         s = self._get_segmentation(length)
-        return s.get_slice()
+        return s.get_slice(sparse_factor)
 
     @property  # TODO: replace with metadata streaming_id
     def jamendo_id(self):
@@ -128,7 +132,7 @@ class Segment:
         return Track.get_by_id(self.track_id)
 
     def to_text(self):
-        return f'{self.track.track_metadata.to_text()} ({self.get_time()})'
+        return self.get_time()
 
     @property
     def full_id(self):
@@ -151,8 +155,8 @@ class Segmentation(CommonMixin, db.Model):
     def get_segment(self, segment_id):
         return Segment(segment_id, self.length, segment_id - self.start_id, self.id)
 
-    def get_segments(self):
-        return [self.get_segment(segment_id) for segment_id in range(self.start_id, self.stop_id)]
+    def get_segments(self, sparse_factor):
+        return [self.get_segment(segment_id) for segment_id in range(self.start_id, self.stop_id, sparse_factor)]
 
     @staticmethod
     def get_by_segment_id(segment_length, segment_id):
@@ -165,8 +169,8 @@ class Segmentation(CommonMixin, db.Model):
         return db.session.query(func.max(Segmentation.stop_id)).filter(
             Segmentation.length == segment_length).first()[0]
 
-    def get_slice(self) -> slice:
-        return slice(self.start_id, self.stop_id)
+    def get_slice(self, sparse_factor) -> slice:
+        return slice(self.start_id, self.stop_id, sparse_factor)
 
 
 @click.command('init-db')

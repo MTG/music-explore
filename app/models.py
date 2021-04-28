@@ -86,16 +86,16 @@ class Model:
 
         return [track.get_embeddings_from_file(self.data_dir)[:, dimensions] for track in tracks]
 
-    def get_embeddings_from_aggrdata(self, tracks, dimensions=None):
+    def get_embeddings_from_aggrdata(self, tracks, sparse_factor, dimensions=None):
         embeddings_file = Path(current_app.config['AGGRDATA_DIR']) / f'{self}.npy'
-        embeddings = np.load(embeddings_file, mmap_mode='r')
+        embeddings = np.load(str(embeddings_file), mmap_mode='r')
         if dimensions is None:
-            return [embeddings[track.get_aggrdata_slice()] for track in tracks]
+            return [embeddings[track.get_aggrdata_slice(self.length, sparse_factor)] for track in tracks]
 
-        return [embeddings[track.get_aggrdata_slice(self.length), dimensions] for track in tracks]
+        return [embeddings[track.get_aggrdata_slice(self.length, sparse_factor), dimensions] for track in tracks]
 
-    def get_embeddings(self, tracks, dimensions=None):
-        return self.get_embeddings_from_file(tracks, dimensions)
+    def get_embeddings(self, tracks, sparse_factor=1, dimensions=None):
+        return self.get_embeddings_from_aggrdata(tracks, sparse_factor, dimensions)
 
 
 class Models:

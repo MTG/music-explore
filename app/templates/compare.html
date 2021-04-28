@@ -41,19 +41,19 @@
             </select>
         </div>
 
-        <div class="col-auto form-group" style="display: none;">
-            <label class="d-block text-center" for="selector-dimension-x">X</label>
-            <select class="selectpicker form-control" id="selector-dimension-x" name="dimension-x"
-                    data-live-search="true">
-            </select>
-        </div>
-
-        <div class="col-auto form-group" style="display: none;">
-            <label class="d-block text-center" for="selector-dimension-y">Y</label>
-            <select class="selectpicker form-control" id="selector-dimension-y" name="dimension-y"
-                    data-live-search="true">
-            </select>
-        </div>
+{#        <div class="col-auto form-group" style="display: none;">#}
+{#            <label class="d-block text-center" for="selector-dimension-x">X</label>#}
+{#            <select class="selectpicker form-control" id="selector-dimension-x" name="dimension-x"#}
+{#                    data-live-search="true">#}
+{#            </select>#}
+{#        </div>#}
+{##}
+{#        <div class="col-auto form-group" style="display: none;">#}
+{#            <label class="d-block text-center" for="selector-dimension-y">Y</label>#}
+{#            <select class="selectpicker form-control" id="selector-dimension-y" name="dimension-y"#}
+{#                    data-live-search="true">#}
+{#            </select>#}
+{#        </div>#}
 
         <div class="col-auto form-group">
             <button class="btn btn-success" type="submit" id="btn-refresh"><i class="fas fa-sync"></i></button>
@@ -67,7 +67,7 @@
             <div class="col-2">
                 <form id="form-data" class="">
                     <div class="form-group">
-                        <label class="" for="selector-tags">Tags ({{ tags | length }})</label>
+                        <label for="selector-tags">Tags ({{ tags | length }})</label>
                         <select class="selectpicker form-control" id="selector-tags" multiple name="tags"
                                 data-live-search="true" data-actions-box="true">
                             {% for tag in tags %}
@@ -85,37 +85,40 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <button class="btn btn-success" type="submit" id="btn-refresh"><i class="fas fa-sync"></i></button>
+                        <label for="range-sparser">Reduction</label>
+                        <input type="range" class="form-control-range" id="range-sparser" name="sparse" min="1" max="10"
+                               value="1" oninput="this.nextElementSibling.value = this.value">
+                        <output for="range-sparser">1</output>
+                    </div>
+                    <div class="form-group form-check">
+                        <input type="checkbox" class="form-check-input" id="check-webgl" name="check-webgl">
+                        <label class="form-check-label" for="check-webgl">Use WebGL</label>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-success" type="submit"><i class="fas fa-sync"></i></button>
                     </div>
                 </form>
 
                 <form id="form-highlight">
-                    Highlight groups
+                    <label for="highlight-entity">Highlight</label>
                     <div class="form-group form-row">
-                        <select class="col selectpicker form-control" name="filter-entity">
-                            <option>Tag</option>
-                            <option>Artist</option>
-                            <option>Album</option>
-                            <option>Track</option>
+                        <select class="col-6 selectpicker form-control" id="highlight-entity">
+                            <option value="">None</option>
+                            <option value="tag">Tag</option>
+                            <option value="artist">Artist</option>
+                            <option value="album">Album</option>
+                            <option value="track">Track</option>
                         </select>
-                        <select class="col selectpicker form-control" multiple name="filter-items">
-                            <option>...</option>
-                        </select>
-                    </div>
-                    <div class="form-group form-row">
-                        <select class="col selectpicker form-control" name="filter-entity">
-                            <option>Tag</option>
-                            <option>Artist</option>
-                            <option>Album</option>
-                            <option>Track</option>
-                        </select>
-                        <select class="col selectpicker form-control" multiple name="filter-items">
-                            <option>...</option>
+                        <select class="col-6 selectpicker form-control" id="highlight-items" name="highlight-items"
+                                multiple data-live-search="true" data-actions-box="true">
                         </select>
                     </div>
                     <div class="form-group">
-                        <button class="btn btn-primary" id="btn-add-filter">+</button>
+                        <button class="btn btn-success" type="submit"><i class="fas fa-sync"></i></button>
                     </div>
+{#                    <div class="form-group">#}
+{#                        <button class="btn btn-primary" id="btn-add-filter">+</button>#}
+{#                    </div>#}
                 </form>
 
                 <div>

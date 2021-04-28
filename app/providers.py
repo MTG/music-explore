@@ -29,16 +29,17 @@ def get_track_url_api(track_id):
     track = Track.get_by_id(track_id)
     return {
         'url': get_track_url(track),
-        'text': track.track_metadata.to_text()
+        'text': track.track_metadata.to_text(),
+        'tags': track.track_metadata.tags_to_text()
     }
 
 
 @bp.route('/segment/<int:segment_length>/<int:segment_id>')
 def get_segment_url(segment_length, segment_id):
     segment = Segment.get_by_id(segment_length, segment_id)
-    print(segment.track)
     track_url = get_track_url(segment.track)
     return {
         'url': f'{track_url}{segment.get_url_suffix()}',
-        'text': segment.track.track_metadata.to_text()
+        'text': segment.track.track_metadata.to_text(),
+        'tags': segment.track.track_metadata.tags_to_text()
     }

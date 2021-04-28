@@ -10,7 +10,7 @@ let playAudio = function (entity) {
         audio.load();
         audio.play();
         if (infoDiv) {
-            infoDiv.innerHTML = this.response.text;
+            infoDiv.innerHTML = `${this.response.text}<br>(${this.response.tags})`;
         }
     });
     xhr.send();

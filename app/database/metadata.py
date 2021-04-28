@@ -41,6 +41,9 @@ class TrackMetadata(NameMixin, db.Model):
     def to_text(self):
         return f'{self.artist.name} - {self.name}'
 
+    def tags_to_text(self):
+        return ', '.join([tag.name for tag in self.tags])
+
     @staticmethod
     def get_by_tags_and_artists(tag_ids, artist_ids):
         return db.session.query(TrackMetadata).join(Tag.tracks_metadata).filter(or_(
