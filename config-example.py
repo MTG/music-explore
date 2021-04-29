@@ -3,7 +3,7 @@ LOGGING_FORMAT = '%(asctime)s %(levelname)s %(message)s'
 LOGGING_LEVEL = 'DEBUG'
 
 # Annoy
-ANNOY_DISTANCE = 'euclidean'
+ANNOY_DISTANCE = 'angular'
 ANNOY_TREES = 16
 
 # Models
@@ -14,6 +14,7 @@ ROOT_DIR = '/path/to/app-root'
 AUDIO_DIR = f'{ROOT_DIR}/audio'  # directory with audio files, can have nested directories
 DATA_DIR = f'{ROOT_DIR}/data'  # directory for extracted embeddings
 INDEX_DIR = f'{ROOT_DIR}/annoy'  # directory for indexed embeddings
+AGGRDATA_DIR = f'{ROOT_DIR}/aggrdata'  # directory for aggregated embeddings
 
 # Constants
 SEGMENT_PRECISION = 1  # number of digits to show after period for seconds for url hash
@@ -31,3 +32,10 @@ AUDIO_PROVIDER = 'local'  # can be 'jamendo' for mtg-jamendo-dataset, or 'local'
 
 # Jamendo - ignore if not using Jamendo
 JAMENDO_CLIENT_ID = ''
+JAMENDO_BATCH_SIZE = 100  # number of tracks to include in one API call to Jamendo when populating the metadata
+
+# Experiments results
+EXPERIMENTS_DIR = f'{ROOT_DIR}/results'  # where to store similarity results
+
+# Plots
+PCA_DIMS = 10  # number of PCA dimensions that are used for tsne and umap
