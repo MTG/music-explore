@@ -49,7 +49,11 @@ def reduce_umap(embeddings: Iterable[np.ndarray]):
 
 
 def standardize(embeddings_stacked):
-    return (embeddings_stacked - embeddings_stacked.mean(axis=0)) / embeddings_stacked.std(axis=0)
+    result = embeddings_stacked - embeddings_stacked.mean(axis=0)
+    std = embeddings_stacked.std(axis=0)
+    nonzero_indices = std != 0
+    result[nonzero_indices] /= std[nonzero_indices]
+    return result
 
 
 def reduce_std_pca(embeddings: Iterable[np.ndarray], batch_size=None):
