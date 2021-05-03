@@ -14,7 +14,7 @@ pip install -r requirements.txt
 pip install essentia-tensorflow tinytag
 
 echo 'Downloading models...'
-mkdir essentia-tf-models
+mkdir -p essentia-tf-models
 cd essentia-tf-models
 wget https://essentia.upf.edu/models/autotagging/msd/msd-musicnn-1.pb -O msd-musicnn.pb
 wget https://essentia.upf.edu/models/autotagging/msd/msd-vgg-1.pb -O msd-vgg.pb
@@ -30,5 +30,6 @@ flask extract-all essentia-tf-models
 flask reduce-all
 flask index-all-embeddings
 flask aggregate-all
+flask load-id3-metadata
 
-echo "Done! You can run the app now with 'flask run'"
+echo "Done! You can run the app now with 'source venv/bin/activate; flask run'"
