@@ -30,7 +30,7 @@ architectures:
         name: 'model/Sigmoid'
         size: 50
       embeddings:
-        name: 'model/batch_normalization_10/batchnorm/add_1'
+        name: 'model/dense/BiasAdd'
         size: 200
     segment-length: 3000
   vgg:
@@ -58,3 +58,17 @@ architectures:
     segment-length: 960
 
 offline-projections: [pca, std-pca]
+
+algorithms:
+  TensorflowPredictMusiCNN:
+    melspec-algorithm: TensorflowInputMusiCNN
+    frame-size: 512
+    hop-size: 256
+    patch-size: 187
+    number-bands: 96
+  TensorflowPredictVGGish:
+    melspec-algorithm: TensorflowInputVGGish
+    frame-size: 400
+    hop-size: 160
+    patch-size: 96
+    number-bands: 64

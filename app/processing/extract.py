@@ -10,11 +10,11 @@ from tqdm import tqdm
 from app.database.base import Track
 from app.models import get_models
 
-SAMPLE_RATE = 16000
-
 
 def extract(input_dir, output_dir, algorithm, model_file, layer, accumulate=False, dry=False, force=False):
     import essentia.standard as ess  # to avoid essentia as regular dependency
+
+    from app.processing.essentia_wrappers import SAMPLE_RATE
 
     try:
         algorithm = getattr(ess, algorithm)
@@ -39,23 +39,37 @@ def extract(input_dir, output_dir, algorithm, model_file, layer, accumulate=Fals
     logging.info('Done!')
 
 
-def extract_all(models_dir, accumulate=False, dry=False, force=False):
+def extract_all(models_dir, dry=False, force=False):
+    from app.processing.essentia_wrappers import get_embeddings, get_melspecs, get_predictors
     app = current_app
-    audio_dir = app.config['AUDIO_DIR']
+    audio_dir = Path(app.config['AUDIO_DIR'])
     data_root_dir = Path(app.config['DATA_DIR'])
     models_dir = Path(models_dir)
 
     models = get_models()
-    for model in models.get_combinations():
-        logging.info(f'Extracting {model}')
-        extract(
-            audio_dir,
-            data_root_dir / str(model),
-            model.architecture_data['essentia-algorithm'],
-            models_dir / f'{model.dataset}-{model.architecture}.pb',
-            model.layer_data['name'],
-            accumulate, dry, force
-        )
+    predictors = get_predictors(models_dir, models.data['architectures'])
+
+    for track in tqdm(Track.get_all()):
+        audio_file = audio_dir / track.path
+
+        melspecs = get_melspecs(audio_file, models.data['algorithms'])
+        embeddings = get_embeddings(melspecs, models.data['architectures'], predictors)
+
+        if not dry:
+            for model_name, embedding in embeddings.items():
+                embeddings_file = data_root_dir / model_name / track.get_embeddings_filename()
+                if force or not embeddings_file.exists():
+                    embeddings_file.parent.mkdir(parents=True, exist_ok=True)
+                    np.save(embeddings_file, embedding.astype(np.float16))
+
+            # extract(
+            #     audio_dir,
+            #     data_root_dir / str(model),
+            #     model.architecture_data['essentia-algorithm'],
+            #     models_dir / f'{model.dataset}-{model.architecture}.pb',
+            #     model.layer_data['name'],
+            #     accumulate, dry, force
+            # )
 
 
 # Entry points
@@ -79,11 +93,10 @@ def extract_command(input_dir, output_dir, algorithm, model_file, layer, accumul
 
 @click.command('extract-all')
 @click.argument('models_dir', type=click.Path(exists=True))
-@click.option('-c', '--accumulate', is_flag=True, help='try to use single Tensorflow session for the whole file')
 @click.option('-d', '--dry', is_flag=True, help='simulate the run')
 @click.option('-f', '--force', is_flag=True, help='force overwriting of embedding files')
 @with_appcontext
-def extract_all_command(models_dir, accumulate, dry, force):
+def extract_all_command(models_dir, dry, force):
     """Compute all embeddings according to config file. Expects MODELS_DIR to have all dataset-model files inside named
     accordingly (e.g. mtt-musicnn.pb)"""
-    extract_all(models_dir, accumulate, dry, force)
+    extract_all(models_dir, dry, force)
