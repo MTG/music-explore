@@ -26,6 +26,14 @@ def create_app(test_config=None):
     app.jinja_env.trim_blocks = True
     app.jinja_env.lstrip_blocks = True
 
+    # cache
+    # TODO: lookup if we can just pass the app config and cache will ignore other options
+    from .cache import cache
+    cache.init_app(app, config={
+        'CACHE_TYPE': app.config['CACHE_TYPE'],
+        'CACHE_DEFAULT_TIMEOUT': app.config['CACHE_DEFAULT_TIMEOUT']
+    })
+
     # database binding and click commands
     from . import database
     database.init_app(app)

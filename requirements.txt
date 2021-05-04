@@ -1,6 +1,7 @@
 annoy==1.17.0
 click==7.1.2
 Flask==1.1.2
+Flask-Caching==1.10.1
 Flask-SQLAlchemy==2.5.1
 numpy==1.20.2
 pandas==1.2.4

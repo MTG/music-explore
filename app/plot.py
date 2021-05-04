@@ -5,6 +5,7 @@ import plotly
 import plotly.graph_objects as go
 from flask import Blueprint, current_app, request
 
+from .cache import cache
 from .database.base import Track
 from .database.metadata import TrackMetadata
 from .models import Model, get_models
@@ -235,6 +236,7 @@ def plot_advanced():
     }, cls=plotly.utils.PlotlyJSONEncoder)
 
 
+@cache.memoize()
 def get_embeddings_and_project(model, tracks, sparse_factor):
     if 'pca' in model.projection:
         return model.get_embeddings(tracks, sparse_factor, [0, 1])
