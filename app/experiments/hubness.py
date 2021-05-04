@@ -3,7 +3,6 @@ import warnings
 import click
 import numpy as np
 import pandas as pd
-import plotly.express as px
 from flask.cli import with_appcontext
 from tqdm import tqdm
 
@@ -14,6 +13,7 @@ from .statistics import FLOAT_FORMAT
 
 RETURN_VALUES = ['k_skewness', 'k_skewness_truncnorm', 'atkinson', 'gini', 'robinhood', 'antihub_occurrence',
                  'hub_occurrence', 'groupie_ratio']
+PLOT_VALUES = ['k_skewness', 'k_skewness_truncnorm', 'atkinson', 'gini', 'robinhood']
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
@@ -34,7 +34,7 @@ def measure_hubness(n_tracks, output_file, metric, projection, dimensions, n_job
             hub.fit(embeddings_stacked[:, :_dimensions])
             result = {key: value for key, value in hub.score().items() if key in RETURN_VALUES}
             result.update({
-                'model': str(model),
+                'model': f'{model.dataset}-{model.architecture}',
                 'layer': model.layer,
                 'dimensions': _dimensions
             })
@@ -45,9 +45,22 @@ def measure_hubness(n_tracks, output_file, metric, projection, dimensions, n_job
 
 
 def visualize_hubness(input_file):
-    results = pd.read_csv(input_file, index_col=0, comment='#')
-    fig = px.line(results)
-    fig.show()
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
+    df = pd.read_csv(input_file, index_col=0, comment='#')
+
+    for layer in ['embeddings', 'taggrams']:
+        fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+
+        df_layer = df[df.layer == layer]
+        for return_value, ax in zip(PLOT_VALUES, axes.flatten()):
+            sns.lineplot(ax=ax, data=df_layer, x='dimensions', y=return_value, style='model')
+            ax.set_title(return_value)
+
+        fig.savefig(f'data/hubness_{layer}.pdf')
+
+    # px.line(df[df.layer == 'embeddings'], color='model', x='dimensions', y='gini', template='').show()
 
 
 @click.command('measure-hubness')
