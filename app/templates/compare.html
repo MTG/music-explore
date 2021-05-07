@@ -25,18 +25,18 @@
         <div class="col-auto form-group">
             <label class="d-block text-center" for="selector-layer">Layer</label>
             <select class="selectpicker form-control" id="selector-layer" name="layer">
-                <option value="embeddings">Embeddings</option>
-                <option value="taggrams">Taggrams</option>
+                {% for key, value in data['layers'].items() %}
+                    <option value="{{ key }}">{{ value['name'] }}</option>
+                {% endfor %}
             </select>
         </div>
 
         <div class="col-auto form-group">
             <label class="d-block text-center" for="selector-projection">Projection</label>
             <select class="selectpicker form-control" id="selector-projection" name="projection">
-                <option value="pca">PCA</option>
-                <option value="std-pca">STD-PCA</option>
-                <option value="tsne">t-SNE</option>
-                <option value="umap">UMAP</option>
+                {% for key, value in data['projections'].items() %}
+                    <option value="{{ key }}">{{ value['name'] }}</option>
+                {% endfor %}
 {#                <option value="original">Original</option>#}
             </select>
         </div>
@@ -94,7 +94,7 @@
                         <input type="checkbox" class="form-check-input" id="check-webgl" name="check-webgl">
                         <label class="form-check-label" for="check-webgl">Use WebGL</label>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group form-row">
                         <button class="btn btn-success" type="submit"><i class="fas fa-sync"></i></button>
                     </div>
                 </form>
@@ -113,18 +113,32 @@
                                 multiple data-live-search="true" data-actions-box="true">
                         </select>
                     </div>
-                    <div class="form-group">
+
+                    <div class="form-row">Play audio on</div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="play" id="play-click" value="click" checked>
+                        <label class="form-check-label" for="play-click">Click</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="play" id="play-hover" value="hover">
+                        <label class="form-check-label" for="play-hover">Hover</label>
+                    </div>
+
+                    <div class="form-group form-row">
                         <button class="btn btn-success" type="submit"><i class="fas fa-sync"></i></button>
                     </div>
-{#                    <div class="form-group">#}
-{#                        <button class="btn btn-primary" id="btn-add-filter">+</button>#}
-{#                    </div>#}
                 </form>
 
                 <div>
                     <audio class="w-100" id="audio" controls></audio>
                     <div class="text-center" id="track-info"></div>
                 </div>
+
+                <form id="form-playlist">
+                    <div class="form-group form-row justify-content-center mt-4">
+                        <button class="btn btn-primary" id="btn-playlist">Create playlist</button>
+                    </div>
+                </form>
             </div>
             <div class="col-5">
                 <form id="form-left">

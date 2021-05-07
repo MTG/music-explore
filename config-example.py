@@ -1,16 +1,16 @@
 # Logging
 LOGGING_FORMAT = '%(asctime)s %(levelname)s %(message)s'
-LOGGING_LEVEL = 'DEBUG'
+LOGGING_LEVEL = 'INFO'
 
 # Annoy
 ANNOY_DISTANCE = 'angular'
 ANNOY_TREES = 16
 
 # Models
-MODELS_FILE = 'models.yaml'
+MODELS_FILE = 'models-anon.yaml'
 
 # Directories
-ROOT_DIR = '/path/to/app-root'
+ROOT_DIR = '/path/to/root'
 AUDIO_DIR = f'{ROOT_DIR}/audio'  # directory with audio files, can have nested directories
 DATA_DIR = f'{ROOT_DIR}/data'  # directory for extracted embeddings
 INDEX_DIR = f'{ROOT_DIR}/annoy'  # directory for indexed embeddings
@@ -39,3 +39,7 @@ EXPERIMENTS_DIR = f'{ROOT_DIR}/results'  # where to store similarity results
 
 # Plots
 PCA_DIMS = 10  # number of PCA dimensions that are used for tsne and umap
+
+# Flask-Caching related configs
+CACHE_TYPE = 'SimpleCache'
+CACHE_DEFAULT_TIMEOUT = 600

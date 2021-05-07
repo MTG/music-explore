@@ -1,41 +1,21 @@
 datasets:
   msd:
-    name: MSD
-    description: 'Trained on Million Song Dataset, 200k tracks annotated by tags from Last.fm'
+    name: D1
     tags: [rock, pop, alternative, indie, electronic, female vocalists, dance, 00s, alternative rock, jazz, beautiful,
            metal, chillout, male vocalists, classic rock, soul, indie rock, mellow, electronica, 80s, folk, 90s, chill,
            instrumental, punk, oldies, blues, hard rock, ambient, acoustic, experimental, female vocalist, guitar,
            hip-hop, 70s, party, country, easy listening, sexy, catchy, funk, electro, heavy metal, progressive rock,
            60s, rnb, indie pop, sad, house, happy]
   mtt:
-    name: MTAT
-    description: 'Trained on MagnaTagaTune, 25k tracks with tags by human annotators'
+    name: D2
     tags: [guitar, classical, slow, techno, strings, drums, electronic, rock, fast, piano, ambient, beat, violin, vocal,
            synth, female, indian, opera, male, singing, vocals, no vocals, harpsichord, loud, quiet, flute, woman,
            male vocal, no vocal, pop, soft, sitar, solo, man, classic, choir, voice, new age, dance, male voice,
            female vocal, beats, harp, cello, no voice, weird, country, metal, female voice, choral]
-  audioset:
-    name: AudioSet
-    description: 'Trained on AudioSet, 1.8 million audio clips from Youtube annotated with the AudioSet taxonomy'
-    tags: []
 
 architectures:
-  musicnn:
-    name: MusiCNN
-    essentia-algorithm: TensorflowPredictMusiCNN
-    description: 'Musically-motivated convolutional neural network (6 layers, 790k parameters)'
-    datasets: [msd, mtt]
-    layers:
-      taggrams:
-        name: 'model/Sigmoid'
-        size: 50
-      embeddings:
-        name: 'model/dense/BiasAdd'
-        size: 200
-    segment-length: 3000
   vgg:
-    name: VGG
-    description: 'Baseline architecture from computer vision, adapted to audio (5 layers, 605k parameters)'
+    name: A1
     datasets: [msd, mtt]
     essentia-algorithm: TensorflowPredictMusiCNN
     layers:
@@ -46,16 +26,18 @@ architectures:
         name: 'model/flatten/Reshape'
         size: 256
     segment-length: 3000
-  vggish:
-    name: VGGish
-    description: 'Baseline architecture from computer vision, original implementation (5 layers, 62m parameters)'
-    datasets: [audioset]
-    essentia-algorithm: TensorflowPredictVGGish
+  musicnn:
+    name: A2
+    essentia-algorithm: TensorflowPredictMusiCNN
+    datasets: [msd, mtt]
     layers:
+      taggrams:
+        name: 'model/Sigmoid'
+        size: 50
       embeddings:
-        name: 'model/vggish/fc2/BiasAdd'
-        size: 128
-    segment-length: 960
+        name: 'model/dense/BiasAdd'
+        size: 200
+    segment-length: 3000
 
 algorithms:
   TensorflowPredictMusiCNN:
@@ -64,27 +46,21 @@ algorithms:
     hop-size: 256
     patch-size: 187
     number-bands: 96
-  TensorflowPredictVGGish:
-    melspec-algorithm: TensorflowInputVGGish
-    frame-size: 400
-    hop-size: 160
-    patch-size: 96
-    number-bands: 64
 
 layers:
   taggrams:
-    name: Taggrams
+    name: L1
   embeddings:
-    name: Embeddings
+    name: L2
 
 offline-projections: [pca, std-pca]
 
 projections:
-  pca:
-    name: PCA
   std-pca:
-    name: STD-PCA
-  tsne:
-    name: t-SNE
+    name: P1
   umap:
-    name: UMAP
+    name: P2
+  pca:
+    name: P3
+  tsne:
+    name: P4

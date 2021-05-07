@@ -110,7 +110,7 @@ class Models:
 
     def get_triplets(self, collection: str):
         """Returns list of tuples (key, name, description). Used for the convenience in templates"""
-        return [(key, value['name'], value['description']) for key, value in self.data[collection].items()]
+        return [(key, value['name'], value.get('description', '')) for key, value in self.data[collection].items()]
 
     def get_combinations(self):
         """Returns combinations of dataset, architecture, and layer ignoring projections"""

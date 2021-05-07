@@ -24,6 +24,9 @@ pointing to your audio folder and make sure that `AUDIO_PROVIDER` is set to `loc
 ln -s /path/to/your/audio app/static/audio
 ```
 
+If you want to visualize your local collection, you can run `run.sh` that will basically execute all the next steps
+automatically.
+
 If you are using [mtg-jamendo-dataset](https://github.com/MTG/mtg-jamendo-dataset), you can serve audio directly
 from Jamendo servers by registering an app in [Jamendo Dev portal](https://devportal.jamendo.com/) and setting
 `JAMENDO_CLIENT_ID` variable. In this case make sure that `AUDIO_PROVIDER` is set to `jamendo`.

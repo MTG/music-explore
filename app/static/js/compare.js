@@ -49,7 +49,9 @@ let loadPlot = function (sides, ) {
             // TODO: only do bindings when there is equal total number of points in both graphs -> they are comparable
             bindCoupledHover(plotId, otherPlotId);
             bindCoupledSelect(plotId, otherPlotId);
-            bindAudio(plotId, localStorage.getItem('audio'));
+
+            const form = new FormData(document.getElementById(`form-highlight`));
+            bindAudio(plotId, form.get('play'));
         }
 
         bindHighlightData(response.highlight)
@@ -174,6 +176,11 @@ $(function () {
         $('#highlight-items').selectpicker('refresh');
     });
     bindSubmit('form-highlight', ['left', 'right']);
+
+    // dummy playlist button
+    document.getElementById('btn-playlist').addEventListener('click', function (event) {
+        event.preventDefault();
+    });
 
     // bindTagSelector('form-left');
     // bindTagSelector('form-right');

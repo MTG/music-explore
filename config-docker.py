@@ -43,3 +43,7 @@ EXPERIMENTS_DIR = f'{ROOT_DIR}/results'  # where to store similarity results
 
 # Plots
 PCA_DIMS = 10  # number of PCA dimensions that are used for tsne and umap
+
+# Flask-Caching related configs
+CACHE_TYPE = 'SimpleCache'
+CACHE_DEFAULT_TIMEOUT = 600

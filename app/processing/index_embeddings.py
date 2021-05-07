@@ -52,7 +52,7 @@ def index_embeddings(model, n_trees=16, n_tracks=None, dry=False, force=False):
 
 def index_all_embeddings(n_trees=16, n_tracks=None, dry=False, force=False):
     models = get_models()
-    for model in models.get_all_offline():
+    for model in models.get_combinations():
         index_embeddings(
             model,
             n_trees, n_tracks, dry, force
