@@ -39,7 +39,17 @@ def extract(input_dir, output_dir, algorithm, model_file, layer, accumulate=Fals
     logging.info('Done!')
 
 
+def _already_extracted(track, models, data_root):
+    for model in models.get_combinations():
+        embeddings_file = data_root / str(model) / track.get_embeddings_filename()
+        if not embeddings_file.exists():
+            return False
+
+    return True
+
+
 def extract_all(models_dir, dry=False, force=False):
+    # TODO: incorporate dry properly
     from app.processing.essentia_wrappers import get_embeddings, get_melspecs, get_predictors
     app = current_app
     audio_dir = Path(app.config['AUDIO_DIR'])
@@ -53,11 +63,13 @@ def extract_all(models_dir, dry=False, force=False):
     for track in tqdm(Track.get_all()):
         audio_file = audio_dir / track.path
 
-        melspecs = get_melspecs(audio_file, models.data['algorithms'])
-        embeddings = get_embeddings(melspecs, models.data['architectures'], predictors)
-        if embeddings is None:
-            tracks_to_delete.append(track)
-        elif not dry:
+        if force or not _already_extracted(track, models, data_root_dir):
+            melspecs = get_melspecs(audio_file, models.data['algorithms'])
+            embeddings = get_embeddings(melspecs, models.data['architectures'], predictors)
+
+            if embeddings is None:
+                tracks_to_delete.append(track)
+
             for model_name, embedding in embeddings.items():
                 embeddings_file = data_root_dir / model_name / track.get_embeddings_filename()
                 if force or not embeddings_file.exists():
