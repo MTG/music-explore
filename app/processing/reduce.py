@@ -52,7 +52,7 @@ def standardize(embeddings_stacked):
     result = embeddings_stacked - embeddings_stacked.mean(axis=0)
     std = embeddings_stacked.std(axis=0)
     nonzero_indices = std != 0
-    result[nonzero_indices] /= std[nonzero_indices]
+    result[:, nonzero_indices] /= std[nonzero_indices]
     return result
 
 
