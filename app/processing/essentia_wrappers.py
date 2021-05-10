@@ -58,7 +58,11 @@ def get_embeddings(melspecs: dict[str, np.ndarray], architectures: dict, predict
         input_pool.set('model/Placeholder', melspecs[metadata['essentia-algorithm']])
 
         for dataset in metadata['datasets']:
-            output_pool = predictors[f'{dataset}-{architecture}'](input_pool)
+            # TODO: chunk the input melspecs to avoid OOM error
+            try:
+                output_pool = predictors[f'{dataset}-{architecture}'](input_pool)
+            except RuntimeError:
+                return None
 
             for layer, layer_data in metadata['layers'].items():
                 embeddings = output_pool[layer_data['name']].squeeze()

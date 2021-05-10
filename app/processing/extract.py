@@ -49,27 +49,32 @@ def extract_all(models_dir, dry=False, force=False):
     models = get_models()
     predictors = get_predictors(models_dir, models.data['architectures'])
 
+    tracks_to_delete = []
     for track in tqdm(Track.get_all()):
         audio_file = audio_dir / track.path
 
         melspecs = get_melspecs(audio_file, models.data['algorithms'])
         embeddings = get_embeddings(melspecs, models.data['architectures'], predictors)
-
-        if not dry:
+        if embeddings is None:
+            tracks_to_delete.append(track)
+        elif not dry:
             for model_name, embedding in embeddings.items():
                 embeddings_file = data_root_dir / model_name / track.get_embeddings_filename()
                 if force or not embeddings_file.exists():
                     embeddings_file.parent.mkdir(parents=True, exist_ok=True)
                     np.save(embeddings_file, embedding.astype(np.float16))
 
-            # extract(
-            #     audio_dir,
-            #     data_root_dir / str(model),
-            #     model.architecture_data['essentia-algorithm'],
-            #     models_dir / f'{model.dataset}-{model.architecture}.pb',
-            #     model.layer_data['name'],
-            #     accumulate, dry, force
-            # )
+    for track in tracks_to_delete:
+        track.delete()
+
+    # extract(
+    #     audio_dir,
+    #     data_root_dir / str(model),
+    #     model.architecture_data['essentia-algorithm'],
+    #     models_dir / f'{model.dataset}-{model.architecture}.pb',
+    #     model.layer_data['name'],
+    #     accumulate, dry, force
+    # )
 
 
 # Entry points
