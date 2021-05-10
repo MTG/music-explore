@@ -45,6 +45,10 @@ class CommonMixin:
             query = query.limit(limit)
         return query.all()  # mostly used with tqdm, so it's nice to have len from .all()
 
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
 
 class Track(CommonMixin, db.Model):
     __tablename__ = 'track'
