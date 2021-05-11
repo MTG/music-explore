@@ -21,6 +21,11 @@ def index_embeddings(model, n_trees=16, n_tracks=None, dry=False, force=False):
     logging.info(f'Loading {model}...')
     for track in tqdm(Track.get_all(limit=n_tracks)):
         embeddings = track.get_embeddings_from_file(model.data_dir)
+
+        if len(embeddings.shape) < 2:
+            logging.error(f'Irregular embeddings for track {track}!')
+            exit(1)
+
         total_segments = len(embeddings)
 
         for position, embedding in enumerate(embeddings):
