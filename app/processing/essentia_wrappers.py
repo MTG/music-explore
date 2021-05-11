@@ -70,6 +70,9 @@ def get_embeddings(melspecs: dict[str, np.ndarray], architectures: dict, predict
                 if len(embeddings) == 0:
                     return None
 
+                if len(embeddings.shape) == 1:
+                    embeddings = np.expand_dims(embeddings, axis=0)
+
                 data[f'{dataset}-{architecture}-{layer}'] = embeddings
 
     return data
