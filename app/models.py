@@ -86,16 +86,35 @@ class Model:
 
         return [track.get_embeddings_from_file(self.data_dir)[:, dimensions] for track in tracks]
 
-    def get_embeddings_from_aggrdata(self, tracks, sparse_factor, dimensions=None):
+    @staticmethod
+    def _reduce_average(embeddings, average_factor):
+        if average_factor == 1:
+            return embeddings
+
+        time, dimensions = embeddings.shape
+        embeddings = embeddings[(time // average_factor) * average_factor, :]
+        embeddings_reshaped = embeddings.reshape(time // average_factor, average_factor, dimensions)
+        return embeddings_reshaped.mean(axis=1)
+
+    def get_embeddings_from_aggrdata(self, tracks, sparse_factor, average_factor, dimensions=None):
         embeddings_file = Path(current_app.config['AGGRDATA_DIR']) / f'{self}.npy'
         embeddings = np.load(str(embeddings_file), mmap_mode='r')
         if dimensions is None:
-            return [embeddings[track.get_aggrdata_slice(self.length, sparse_factor)] for track in tracks]
+            dimensions = slice(embeddings.shape[-1])
 
-        return [embeddings[track.get_aggrdata_slice(self.length, sparse_factor), dimensions] for track in tracks]
+        if average_factor == 1:
+            return [embeddings[track.get_aggrdata_slice(self.length, sparse_factor), dimensions] for track in tracks]
 
-    def get_embeddings(self, tracks, sparse_factor=1, dimensions=None):
-        return self.get_embeddings_from_aggrdata(tracks, sparse_factor, dimensions)
+        embeddings_all = []
+        for track in tracks:
+            track_embeddings = embeddings[track.get_aggrdata_slice(self.length, 1), dimensions]
+            averaged_embeddings = self._reduce_average(track_embeddings, average_factor)
+            sparsed_embeddings = averaged_embeddings[::sparse_factor]
+            embeddings_all.append(sparsed_embeddings)
+        return embeddings_all
+
+    def get_embeddings(self, tracks, sparse_factor=1, average_factor=1, dimensions=None):
+        return self.get_embeddings_from_aggrdata(tracks, sparse_factor, average_factor, dimensions)
 
 
 class Models:
