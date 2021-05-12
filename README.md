@@ -89,6 +89,7 @@ flask index-all-audio  # creates list of audio tracks in db
 flask extract-all essentia-tf-models  # extracts embeddings
 flask reduce-all  # computes the projections
 flask index-all-embeddings  # indexes everything in database
+flask aggregate-all # aggregates embeddings in single .npy file per model (to get rid of many small files)
 ```
 
 #### Adding local metadata
