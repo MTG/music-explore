@@ -4,18 +4,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Latest
+## [0.3.0] - 2020-06-04
 
 ### Added
+- New mode: comparison interface for proper music exploration
+- New mode: similarity interface for gathering user feedback on segment similarity
 - Annoy indexes for embeddings storage
 - SQLite database for
   - Mapping between Annoy ids and `track_id` with timestamps
   - Track metadata (artist, album, tags)
-  - Reading ID3 tags from local collections
+- Reading metadata from ID3 tags for local collections and consuming Jamendo API for MTG-Jamendo dataset
 - New projection: STD-PCA that standardizes individual embedding dimensions before applying PCA
+- New projection: UMAP
+- Experiments to measure hubness and spread
+- Anonymized models for the user experiments
+- Aggregation of embeddings into one file instead of having multiple small .npy files per track
 
 ### Changed
 - Restructured app to have scripts as part of Flask app with `click` instead of `argparse`
+- Optimized embeddings extraction script
+- Modularized JS code
 
 ### Removed
 - Old processing code using MusiCNN package directly in favor of newer Essentia extractors
@@ -48,7 +56,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made the plot section bigger
 
 ### Removed
-
 - Support for dynamic PCA
 - Selection of layers for t-SNE (now only [0, 1])
 
