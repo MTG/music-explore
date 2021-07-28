@@ -129,6 +129,18 @@ let bindCoupledSelect = function (src, dst) {
     });
 };
 
+let getSelectedSegments = function (src) {
+    const plotDiv = document.getElementById(src);
+
+    let points = [];
+    const somethingSelected = plotDiv.data[0].hasOwnProperty('selectedpoints');  // not liking it too much
+    for (const curve of plotDiv.data) {
+        const curvePoints = somethingSelected ? curve.selectedpoints.map(i => curve.ids[i]) : curve.ids;
+        points = points.concat(curvePoints);
+    }
+    return points;
+}
+
 let bindTagSelector = function (formId) {
     const form = document.getElementById(formId);
     const dimensionSelectors = [
@@ -161,6 +173,15 @@ let bindFilters = function () {
 
 };
 
+const bindPlaylistButton = function() {
+    document.getElementById('btn-playlist').addEventListener('click', event => {
+        event.preventDefault();
+        const selectedSegments = Object.keys(otherSide).map(side => getSelectedSegments(`plot-${side}`));
+        console.log(selectedSegments);
+        // TODO: intersect
+    });
+}
+
 $(function () {
     // init Bootstrap/Popper tooltips
     $('[data-toggle="tooltip"]').tooltip();
@@ -176,12 +197,7 @@ $(function () {
         $('#highlight-items').selectpicker('refresh');
     });
     bindSubmit('form-highlight', ['left', 'right']);
-
-    // dummy playlist button
-    document.getElementById('btn-playlist').addEventListener('click', function (event) {
-        event.preventDefault();
-    });
-
+    bindPlaylistButton();
     // bindTagSelector('form-left');
     // bindTagSelector('form-right');
 
