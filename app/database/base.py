@@ -128,7 +128,7 @@ class Segment:
         return f'#t={self._str(start)},{self._str(end)}'
 
     @staticmethod
-    def get_by_id(segment_length, segment_id):
+    def get_by_id(segment_length: int, segment_id: int):
         return Segmentation.get_by_segment_id(segment_length, segment_id).get_segment(segment_id)
 
     @property
@@ -163,7 +163,7 @@ class Segmentation(CommonMixin, db.Model):
         return [self.get_segment(segment_id) for segment_id in range(self.start_id, self.stop_id, sparse_factor)]
 
     @staticmethod
-    def get_by_segment_id(segment_length, segment_id):
+    def get_by_segment_id(segment_length: int, segment_id: int):
         return db.session.query(Segmentation).filter(and_(Segmentation.length == segment_length,
                                                           Segmentation.start_id <= segment_id,
                                                           Segmentation.stop_id > segment_id)).first()

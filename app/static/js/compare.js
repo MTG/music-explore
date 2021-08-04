@@ -177,8 +177,22 @@ const bindPlaylistButton = function() {
     document.getElementById('btn-playlist').addEventListener('click', event => {
         event.preventDefault();
         const selectedSegments = Object.keys(otherSide).map(side => getSelectedSegments(`plot-${side}`));
-        console.log(selectedSegments);
-        // TODO: intersect
+        // intersect
+        const intersectedSegments = selectedSegments[0].filter(value => selectedSegments[1].includes(value));
+        const data = {segments: intersectedSegments};
+
+        let request = createXhr('POST', '/audio/playlist');
+        request.responseType = "blob";
+        request.addEventListener('load', function () {
+            const response = this.response;
+
+            // feels hacky
+            let a = document.createElement("a");
+            a.href = URL.createObjectURL(this.response);
+            a.download = "playlist.m3u8";
+            a.click();
+        });
+        request.send(JSON.stringify(data));
     });
 }
 
