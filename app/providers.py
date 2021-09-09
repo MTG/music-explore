@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pathlib import Path, PurePosixPath, PureWindowsPath
 
 from flask import Blueprint, Response, current_app, request, url_for
