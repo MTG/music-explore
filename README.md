@@ -83,6 +83,10 @@ t-SNE is applied dynamically only on the number of tracks that you are visualizi
 
 ### Process audio
 
+To take full advantage of this application, make sure your audio is in the format that your browser can reproduce
+(mp3, ogg, etc.). If you need to batch convert your audio, check out
+[this gist](https://gist.github.com/philtgun/304d70727d9bda5a0aee7a9e92ddbe69)
+
 ```shell
 flask init-db  # creates tables in db
 flask index-all-audio  # creates list of audio tracks in db
@@ -104,10 +108,16 @@ flask load-jamendo-metadata path/to/mtg-jamendo-dataset/data/raw_30s_cleantags.t
 flask query-jamendo-metadata
 ```
 
-Query Jamendo API for track, artist, album names
-```
-# TODO
-```
+### Creating playlists
+If you are using nix-based system, the playlist creation should work out of the box.
+If you want to create playlists for later use, change `PLAYLIST_FOR_OFFLINE=True` in `config.py`.
+
+If you are using Windows Subsystem for Linux (WSL) and would like to use playlists in Windows, apart from setting
+`PLAYLIST_FOR_OFFLINE=True`, you should also set `PLAYLIST_USE_WINDOWS_PATH = True` and the path
+`PLAYLIST_AUDIO_DIR = 'C:\\path\\to\\audio'` that is the same one that you created symbolic link before, but as Windows
+path.
+
+Note: none of these options have any effect if the `AUDIO_PROVIDER='jamendo'`.
 
 ### Running the app
 
@@ -117,7 +127,7 @@ FLASK_ENV=development flask run
 
 ## Deploying with Docker (to be updated)
 
-- Set `SERVE_AUDIO_LOCALLY` in `config-docker.py` appropriately depending if you want to use Jamendo API or not
+- Set `SERVE_AUDIO_LOCALLY` in `config-docker.py` appropriately depending on if you want to use Jamendo API or not
 - Build and run docker image with your data mounted at `/data`, it uses port 80 by default
 - If `SERVE_AUDIO_LOCALLY=True`, make sure to mount your audio dir at `/app/static/audio` otherwise make sure that you
 set `JAMENDO_CLIENT_ID` environment variable
@@ -136,7 +146,6 @@ pip install pre-commit
 pre-commit install
 ```
 
-
 ## License
 
 The code is licensed under [GNU Affero General Public License v3.0](/LICENSE).
@@ -148,7 +157,7 @@ When using or referencing this work, please cite the following publication:
 @inproceedings{tovstogan2020web,
   title = {Web Interface for Exploration of Latent and Tag Spaces in Music Auto-Tagging},
   author = {Philip Tovstogan and Xavier Serra and Dmitry Bogdanov},
-  booktitle = {Machine Learning for Media Discovery Workshop, ML4MD, International Conference on Machine Learning, ICML 2020},
+  booktitle = {Machine Learning for Media Discovery Workshop (ML4MD), International Conference on Machine Learning (ICML)},
   year = {2020}
 }
 ```

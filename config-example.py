@@ -16,9 +16,10 @@ DATA_DIR = f'{ROOT_DIR}/data'  # directory for extracted embeddings
 INDEX_DIR = f'{ROOT_DIR}/annoy'  # directory for indexed embeddings
 AGGRDATA_DIR = f'{ROOT_DIR}/aggrdata'  # directory for aggregated embeddings
 
+# Playlist creation
 # PLAYLIST_FOR_OFFLINE = True  # set it to true if you want to generate playlists for offline listening
 # PLAYLIST_USE_WINDOWS_PATH = True  # set it to True if you are using WSL - affects the paths generated for playlists
-# PLAYLIST_AUDIO_DIR = 'D:\\path\\to\\audio'  # if the offline audio path is different (WSL, or maybe media center)
+# PLAYLIST_AUDIO_DIR = 'C:\\path\\to\\audio'  # if the offline audio path is different (WSL, or maybe media center)
 
 # Constants
 SEGMENT_PRECISION = 1  # number of digits to show after period for seconds for url hash
