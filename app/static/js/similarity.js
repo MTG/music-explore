@@ -24,13 +24,19 @@ let bindSubmit = function () {
                 document.getElementById('results').style.display = 'block';
                 // location.reload();
             });
+            const choices = Array.from(document.getElementsByName('segment-choice'), x => x.value);
             const result = {
                 'reference': document.getElementById('segment-reference').value,
-                'choices': Array.from(document.getElementsByName('segment-choice'), x => x.value),
+                'choices': choices,
                 'selected': selectedOption.value,
                 'model': document.getElementById('model').innerHTML
             }
             console.log(result);
+            const closestIdx = document.getElementById('closest-idx').innerHTML - 1
+            console.log(choices[closestIdx], selectedOption.value)
+            const alertId = (choices[closestIdx] === selectedOption.value) ? 'alert-match' : 'alert-mismatch'
+            document.getElementById(alertId).style.display = 'block';
+
             xhr.send(JSON.stringify(result));
         }
     })

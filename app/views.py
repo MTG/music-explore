@@ -14,7 +14,10 @@ def playground():
     return render_template('playground.html',
                            datasets=models.get_triplets('datasets'),
                            architectures=models.get_triplets('architectures'),
-                           tags=models.get_dict('datasets', 'tags'))
+                           tags=models.get_dict('datasets', 'tags'),
+                           layers=models.get_triplets('layers'),
+                           projections=models.get_triplets('projections')
+                           )
 
 
 @bp.route('/compare')
@@ -28,4 +31,5 @@ def compare():
 @bp.route('/similarity')
 def explore():
     segments = get_segments()
-    return render_template('similarity.html', segments=segments)
+    closest_idx = segments['choices'].index(segments['closest']) + 1
+    return render_template('similarity.html', segments=segments, closest_idx=closest_idx)

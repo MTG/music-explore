@@ -74,17 +74,26 @@ algorithms:
 layers:
   taggrams:
     name: Taggrams
+    description: 'Show tag activations from the output layer of neural network'
   embeddings:
     name: Embeddings
+    description: 'Show embeddings from the second-to-last layer of neural network'
 
 offline-projections: [pca, std-pca]
 
 projections:
+  original:
+    name: Original
+    description: 'Select 2 tags or embedding layers to visualize on X and Y axis'
   pca:
     name: PCA
+    description: 'Use Principal Component Analysis'
   std-pca:
     name: STD-PCA
+    description: 'Use PCA, with prior standardization along dimensions'
   tsne:
     name: t-SNE
+    description: 'Use 2D t-SNE. Best used with N < 50, becomes slow for higher numbers'
   umap:
+    description: 'Use UMAP. Best used with N < 50, becomes slow for higher numbers'
     name: UMAP

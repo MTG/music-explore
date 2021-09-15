@@ -21,7 +21,7 @@ let loadPlot = function (sides, ) {
     for (const values of highlight.getAll('highlight-items')) {
         ids = ids.concat(JSON.parse(values))
     }
-    requestData.highlight = [...new Set(ids)];  // TODO: read about ellipsis in JS
+    requestData.highlight = [...new Set(ids)];
 
     for(const side of sides){
         const model = new FormData(document.getElementById(`form-${side}`));
@@ -196,9 +196,16 @@ const bindPlaylistButton = function() {
     });
 }
 
+const initSparserValue = function () {
+    const outputSparser = document.getElementById('output-sparser');
+    outputSparser.value = document.getElementById('range-sparser').value;
+}
+
 $(function () {
     // init Bootstrap/Popper tooltips
     $('[data-toggle="tooltip"]').tooltip();
+
+    initSparserValue();
 
     bindSubmit('form-left', ['left']);
     bindSubmit('form-right', ['right']);

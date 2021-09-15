@@ -26,9 +26,18 @@
     <div class="row justify-content-center">
         <button type="submit" class="btn btn-success mt-2" id="submit" disabled>Submit</button>
     </div>
-    <div class="row text-center" id="results" style="display: none;">
-        <span id="model">{{ segments['model'] }}</span>
-        {% for distance in segments['distances'] %} {{ distance | round(3) }} {% endfor %}
+    <div class="row text-center my-3" id="results" style="display: none;">
+        <div class="alert alert-success col-auto" id="alert-match" style="display: none">
+            <i class="fas fa-check"></i> Computer thinks the same! </div>
+        <div class="alert alert-warning col-auto" id="alert-mismatch" style="display: none">
+            <i class="fas fa-times"></i> Computer thinks it was #<span id="closest-idx">{{ closest_idx }}</span>!</div>
+        <a href="" class="btn btn-primary">Another! <i class="fas fa-sync-alt"></i></a>
+        <button class="btn btn-info" type="button" data-toggle="collapse" data-target="#details" aria-expanded="false"
+                aria-controls="details">More details <i class="fas fa-code"></i></button>
+        <div class="collapse my-3" id="details">
+            Model: <span id="model">{{ segments['model'] }}</span>.
+            Distances: {% for distance in segments['distances'] %} {{ distance | round(3) }} {% endfor %}.
+        </div>
     </div>
 </div>
 {% endblock %}

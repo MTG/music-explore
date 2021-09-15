@@ -256,7 +256,7 @@ let initDims = function (metadata, defaultValue) {
             dimensions[architecture][dataset] = dimensions[architecture][dataset] || {};
             for (const layer in metadata['architectures'][architecture]['layers']) {
                 dimensions[architecture][dataset][layer] = dimensions[architecture][dataset][layer] || {};
-                for (const projection of ['original', 'pca']) {
+                for (const projection of ['original', 'pca', 'std-pca']) {
                     dimensions[architecture][dataset][layer][projection] = dimensions[architecture][dataset][layer][projection] || defaultValue;
                 }
             }
@@ -279,7 +279,7 @@ $(function () {
                 updateSelectors('dataset', datasets, Object.keys(metadata['datasets']))
 
                 let layers = Object.keys(metadata['architectures'][architecture]['layers'])
-                updateSelectors('layer', layers, ['embeddings', 'taggrams'])
+                updateSelectors('layer', layers, Object.keys(metadata['layers']))
 
                 updateDimSelector(metadata);
             });
@@ -302,6 +302,7 @@ $(function () {
         initSelector('dataset', 'mtt');
         initSelector('layer', 'taggrams');
         initSelector('projection', 'original');
+        func();
 
         loadPlot(false);
     });

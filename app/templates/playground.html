@@ -41,20 +41,11 @@
                 </div>
 
                 <div class="form-group form-row">
-                    {{ radio_buttons([
-                    ('embeddings', 'Embeddings', 'Show embeddings from the second-to-last layer of neural network'),
-                    ('taggrams', 'Taggrams', 'Show tag activations from the output layer of neural network')],
-                    'layer', 'btn-primary', 'Layer') }}
+                    {{ radio_buttons(layers, 'layer', 'btn-primary', 'Layer') }}
                 </div>
 
                 <div class="form-group form-row">
-                    {{ radio_buttons([
-                    ('original', 'Original', 'Select 2 tags or embedding layers to visualize on X and Y axis'),
-                    ('pca', 'PCA', 'Select principal components to be visualized'),
-                    ('std-pca', 'STD-PCA', 'Select principal components to be visualized'),
-                    ('tsne', 't-SNE', 'Use 2D t-SNE. Best used with N < 50, becomes slow for higher numbers'),
-                    ('umap', 'UMAP', 'Use UMAP. Best used with N < 50, becomes slow for higher numbers')],
-                    'projection', 'btn-info', 'Projection') }}
+                    {{ radio_buttons(projections, 'projection', 'btn-info', 'Projection') }}
                 </div>
 
                 <div class="form-group form-row" id="projection-controls">
