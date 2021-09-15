@@ -1,3 +1,4 @@
+import logging
 from copy import copy
 from dataclasses import dataclass
 from pathlib import Path
@@ -65,14 +66,16 @@ class Model:
         if not hasattr(self, 'index'):
             self.index = AnnoyIndex(self.n_dimensions, current_app.config['ANNOY_DISTANCE'])
             if load:
+                print(str(self.index_file))
                 self.index.load(str(self.index_file))
         return self.index
 
-    def get_embeddings_from_annoy(self, tracks, dimensions=None):
+    def get_embeddings_from_annoy(self, tracks, sparse_factor, dimensions=None):
         self.get_annoy_index()
         embeddings = []
         for track in tracks:
-            track_embeddings = [self.index.get_item_vector(segment.id) for segment in track.get_segments(self.length)]
+            track_embeddings = [self.index.get_item_vector(segment.id) for segment in
+                                track.get_segments(self.length, sparse_factor)]
             track_embeddings = np.array(track_embeddings)
             if dimensions is not None:
                 track_embeddings = track_embeddings[:, dimensions]
