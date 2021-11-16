@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Optional
 
@@ -25,7 +26,11 @@ def get_predictors(models_dir: Path, architectures: dict) -> dict:
 
 def get_melspecs(audio_file: Path, algorithms: dict) -> Optional[dict[str, np.ndarray]]:
     # loading file
-    audio = ess.MonoLoader(filename=str(audio_file), sampleRate=SAMPLE_RATE)()
+    try:
+        audio = ess.MonoLoader(filename=str(audio_file), sampleRate=SAMPLE_RATE)()
+    except RuntimeError:
+        logging.error(f'Error reading file: {audio_file}')
+        return None
 
     # precompute melspecs
     melspecs_all = {}

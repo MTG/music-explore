@@ -1,4 +1,5 @@
 # import logging
+import logging
 from pathlib import Path
 
 import click
@@ -12,13 +13,17 @@ from app.database.metadata import Album, Artist, Tag, TrackMetadata
 
 def load_id3_metadata(n_tracks=None):
     from tinytag import TinyTag
+    from tinytag.tinytag import TinyTagException
 
     audio_dir = Path(current_app.config['AUDIO_DIR'])
 
     session_size = 0
     for track in tqdm(Track.get_all(limit=n_tracks)):
         path = audio_dir / track.path
-        metadata = TinyTag.get(path)
+        try:
+            metadata = TinyTag.get(path)
+        except TinyTagException:
+            logging.error(f'Cannot read ID3 tags from {path}')
 
         if TrackMetadata.get_by_id(track.id) is None:
             track_name = metadata.title

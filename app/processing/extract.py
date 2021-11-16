@@ -65,16 +65,18 @@ def extract_all(models_dir, dry=False, force=False):
 
         if force or not _already_extracted(track, models, data_root_dir):
             melspecs = get_melspecs(audio_file, models.data['algorithms'])
-            embeddings = get_embeddings(melspecs, models.data['architectures'], predictors)
-
-            if embeddings is None:
+            if melspecs is None:
                 tracks_to_delete.append(track)
             else:
-                for model_name, embedding in embeddings.items():
-                    embeddings_file = data_root_dir / model_name / track.get_embeddings_filename()
-                    if force or not embeddings_file.exists():
-                        embeddings_file.parent.mkdir(parents=True, exist_ok=True)
-                        np.save(embeddings_file, embedding.astype(np.float16))
+                embeddings = get_embeddings(melspecs, models.data['architectures'], predictors)
+                if embeddings is None:
+                    tracks_to_delete.append(track)
+                else:
+                    for model_name, embedding in embeddings.items():
+                        embeddings_file = data_root_dir / model_name / track.get_embeddings_filename()
+                        if force or not embeddings_file.exists():
+                            embeddings_file.parent.mkdir(parents=True, exist_ok=True)
+                            np.save(embeddings_file, embedding.astype(np.float16))
 
     for track in tracks_to_delete:
         track.delete()
