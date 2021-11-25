@@ -3,7 +3,7 @@ const otherSide = {
     right: 'left'
 };
 
-let loadPlot = function (sides, ) {
+let loadPlot = function (sides, button) {
     const data = new FormData(document.getElementById('form-data'));
     const highlight = new FormData(document.getElementById('form-highlight'));
 
@@ -35,6 +35,7 @@ let loadPlot = function (sides, ) {
 
     let request = createXhr('POST', '/plot-advanced');
     request.addEventListener('load', function () {
+        button.disabled = false;
         const response = this.response;
         console.dir(response);
 
@@ -76,9 +77,11 @@ let bindHighlightData = function (data) {
 
 let bindSubmit = function (formId, sides, cb) {
     document.getElementById(formId).addEventListener('submit', function (event) {
+        console.dir(event);
+        event.submitter.disabled = true;
         event.preventDefault();
         if (cb) cb();  // optional code to execute before loading plot
-        loadPlot(sides);
+        loadPlot(sides, event.submitter);
     });
 };
 
