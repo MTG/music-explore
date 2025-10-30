@@ -1,0 +1,16 @@
+services:
+  music-explore:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: flask run --host=0.0.0.0 --port=8080
+    ports:
+      - "${PORT:-8080}:8080"
+    volumes:
+      - .:/app
+      - /app/data
+      - ./data:/data
+      - ./config-docker.py:/app/instance/config.py
+    environment:
+      JAMENDO_CLIENT_ID: ${JAMENDO_CLIENT_ID:-}
+    restart: unless-stopped
