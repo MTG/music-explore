@@ -17,7 +17,7 @@ dependencies = [
     "pyyaml>=6.0.3",
     "requests>=2.32.5",
     "scikit-learn>=1.7.2",
-    "sqlalchemy<2",  # TODO: upgrade to v2
+    "sqlalchemy>=2.0.44",
     "tqdm>=4.67.1",
     "umap-learn>=0.5.9.post2",
     "werkzeug>=3.1.3",
