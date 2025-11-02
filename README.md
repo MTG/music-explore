@@ -4,7 +4,7 @@
 
 ### Requirements
 
-Python 3.7+
+Python 3.12+
 
 ### Config
 
@@ -34,15 +34,12 @@ from Jamendo servers by registering an app in [Jamendo Dev portal](https://devpo
 ### Environment
 
 ```shell
-python3.x -m venv venv
-source venv/bin/activate
-pip install --upgrade pip setuptools wheel
-pip install -r requirements.txt
+uv sync
 ```
 
 If you get an error while installing `annoy`, make sure that you have `python3.x-dev` installed
 
-You can use python 3.8+ with no problems for running the app, but you will need separate environment for audio
+You can use python 3.12+ with no problems for running the app, but you will need separate environment for audio
 processing, as, there are no `essentia-tensorflow` wheels for Python 3.8 yet.
 However, it is a good idea to have separate environments for processing and running anyway, as there are some packages
 that are only used for processing.

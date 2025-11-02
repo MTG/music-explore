@@ -1,4 +1,4 @@
-FROM tiangolo/uwsgi-nginx-flask:python3.12
+FROM tiangolo/uwsgi-nginx-flask:python3.13
 MAINTAINER Philip Tovstogan "philip.tovstogan@upf.edu"
 
 COPY requirements.txt /app/requirements.txt
