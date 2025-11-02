@@ -89,7 +89,6 @@ def query_jamendo_metadata(db_model, jamendo_entity, batch_size, http_session=No
 
         if db_model == TrackMetadata:
             id_mapping = {row.streaming_id: row.id for row in rows}
-
             def map_id(_id):
                 return id_mapping[_id]
             ids = set(id_mapping.keys())
@@ -114,11 +113,12 @@ def query_jamendo_metadata(db_model, jamendo_entity, batch_size, http_session=No
 
         mappings = []
         for result in response_json['results']:
+            result_id = int(result['id'])
             mappings.append({
-                'id': map_id(result['id']),
+                'id': map_id(result_id),
                 'name': result['name']
             })
-            ids.remove(result['id'])
+            ids.remove(result_id)
 
         for missed_id in ids:
             mappings.append({

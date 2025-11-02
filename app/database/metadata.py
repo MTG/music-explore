@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from sqlalchemy import Column, ForeignKey, Integer, String, Table, or_, select
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -27,8 +25,8 @@ track_metadata_tag_table = Table('track_metadata_tag', db.Model.metadata,
 class TrackMetadata(NameMixin, db.Model):
     __tablename__ = 'track_metadata'
     id: Mapped[int] = mapped_column(ForeignKey('track.id'), primary_key=True)
-    track: Mapped['Track'] = relationship('Track', back_populates='track_metadata')
-    streaming_id: Mapped[str | None] = mapped_column(String, unique=True)
+    track: Mapped['Track'] = relationship('Track', back_populates='track_metadata')  # noqa: F821
+    streaming_id: Mapped[int | None] = mapped_column(unique=True)
 
     artist_id: Mapped[int | None] = mapped_column(ForeignKey('artist.id'))
     artist: Mapped['Artist | None'] = relationship('Artist', back_populates='tracks_metadata')

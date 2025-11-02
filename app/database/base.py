@@ -60,7 +60,7 @@ class Track(CommonMixin, db.Model):
     segmentations: Mapped[list['Segmentation']] = relationship('Segmentation', back_populates='track')
     path: Mapped[str] = mapped_column(String, index=True, unique=True)
 
-    track_metadata: Mapped['TrackMetadata | None'] = relationship('TrackMetadata', uselist=False, back_populates='track')
+    track_metadata: Mapped['TrackMetadata | None'] = relationship('TrackMetadata', uselist=False, back_populates='track')  # noqa: F821
 
     def __repr__(self):
         return f'Track(id={self.id}, path={self.path})'
