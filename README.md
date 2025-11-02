@@ -137,6 +137,10 @@ uv sync --dev
 uv run prek install
 ```
 
+## Experiments
+
+Some experiment commands are not runnable, particularly from `hubness.py` depend on [scikit-hubness](https://github.com/VarIr/scikit-hubness) package, that is difficult to install.
+
 ## License
 
 The code is licensed under [GNU Affero General Public License v3.0](/LICENSE).
