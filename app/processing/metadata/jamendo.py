@@ -47,7 +47,7 @@ def load_jamendo_metadata(input_file):
                         album = Album(id=album_id, artist=artist)
                         db.session.add(album)
 
-                    track_metadata = TrackMetadata(track=track, streaming_id=str(track_jamendo_id),
+                    track_metadata = TrackMetadata(track=track, streaming_id=track_jamendo_id,
                                                    album=album, artist=artist)
                     db.session.add(track_metadata)
 
