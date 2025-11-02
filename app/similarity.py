@@ -22,7 +22,7 @@ def get_segments(strategy: str = 'semirandom', model: Optional[Model] = None):
 
         return {
             'reference': Segment.get_by_id(length, ref_segment_id),
-            'choices': segment_choices
+            'choices': segment_choices,
         }
 
     if strategy == 'semirandom':
@@ -43,8 +43,8 @@ def get_segments(strategy: str = 'semirandom', model: Optional[Model] = None):
         closest_segment = None
         closest_n = 2
         while closest_segment is None:
-            print(f'looking from {closest_n//2} .. {closest_n}')
-            for segment_id in index.get_nns_by_item(ref_segment_id, closest_n + 1)[closest_n // 2:]:
+            print(f'looking from {closest_n // 2} .. {closest_n}')
+            for segment_id in index.get_nns_by_item(ref_segment_id, closest_n + 1)[closest_n // 2 :]:
                 segment = Segment.get_by_id(length, segment_id)
                 if segment.track.track_metadata.artist != ref_artist:
                     closest_segment = segment
@@ -61,7 +61,7 @@ def get_segments(strategy: str = 'semirandom', model: Optional[Model] = None):
             'choices': random_segments,
             'closest': closest_segment,
             'distances': distances,
-            'model': model
+            'model': model,
         }
 
 

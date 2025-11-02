@@ -32,8 +32,14 @@ def index_embeddings(model, n_trees=16, n_tracks=None, dry=False, force=False):
             embeddings_index.add_item(current_index + position, embedding)  # annoy
 
         if not track.has_segmentation(model.length):
-            db.session.add(Segmentation(track=track, length=model.length, start_id=current_index,
-                                        stop_id=current_index + total_segments))
+            db.session.add(
+                Segmentation(
+                    track=track,
+                    length=model.length,
+                    start_id=current_index,
+                    stop_id=current_index + total_segments,
+                )
+            )
             session_size += 1
 
         if not dry and needs_committing(session_size):
@@ -58,13 +64,11 @@ def index_embeddings(model, n_trees=16, n_tracks=None, dry=False, force=False):
 def index_all_embeddings(n_trees=16, n_tracks=None, dry=False, force=False):
     models = get_models()
     for model in models.get_combinations():
-        index_embeddings(
-            model,
-            n_trees, n_tracks, dry, force
-        )
+        index_embeddings(model, n_trees, n_tracks, dry, force)
 
 
 # Entry points
+
 
 @click.command('index-embeddings')
 @click.argument('input_dir', type=click.Path(exists=True))

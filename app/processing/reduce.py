@@ -44,6 +44,7 @@ def reduce_tsne(embeddings: Iterable[np.ndarray]):
 
 def reduce_umap(embeddings: Iterable[np.ndarray]):
     from umap import UMAP
+
     projection = UMAP(n_components=2, init='random', random_state=0)
     return reduce_generic(list(embeddings), projection)
 
@@ -65,7 +66,7 @@ REDUCE = {
     'pca': reduce_pca,
     'std-pca': reduce_std_pca,
     'tsne': reduce_tsne,
-    'umap': reduce_umap
+    'umap': reduce_umap,
 }
 
 
@@ -108,11 +109,14 @@ def reduce_all(projection=None, n_tracks=None, dry=False, force=False):
             data_dir / str(model.without_projection()),
             data_dir / str(model),
             model.projection,
-            n_tracks, dry, force
+            n_tracks,
+            dry,
+            force,
         )
 
 
 # Entry points
+
 
 @click.command('reduce')
 @click.argument('input_dir', type=click.Path(exists=True))

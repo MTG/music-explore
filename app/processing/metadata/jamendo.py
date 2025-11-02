@@ -47,8 +47,10 @@ def load_jamendo_metadata(input_file):
                         album = Album(id=album_id, artist=artist)
                         db.session.add(album)
 
-                    track_metadata = TrackMetadata(track=track, streaming_id=track_jamendo_id,
-                                                   album=album, artist=artist)
+                    track_metadata = TrackMetadata(
+                        track=track, streaming_id=track_jamendo_id, album=album, artist=artist
+                    )
+
                     db.session.add(track_metadata)
 
                     for raw_tag in raw_tags:
@@ -73,8 +75,8 @@ def get_http_session():
     retry_strategy = Retry(total=3, backoff_factor=1, status_forcelist=[429, 500, 502, 503, 504])
     adapter = HTTPAdapter(max_retries=retry_strategy)
     http_session = requests.Session()
-    http_session.mount("https://", adapter)
-    http_session.mount("http://", adapter)
+    http_session.mount('https://', adapter)
+    http_session.mount('http://', adapter)
     return http_session
 
 
@@ -84,23 +86,27 @@ def query_jamendo_metadata(db_model, jamendo_entity, batch_size, http_session=No
 
     url = f'https://api.jamendo.com/v3.0/{jamendo_entity}/'
     noname_rows = db.session.scalars(select(db_model).where(db_model.name.is_(None))).all()
-    for rows in tqdm([noname_rows[pos:pos + batch_size] for pos in range(0, len(noname_rows), batch_size)],
-                     desc=jamendo_entity):
-
+    for rows in tqdm(
+        [noname_rows[pos : pos + batch_size] for pos in range(0, len(noname_rows), batch_size)], desc=jamendo_entity
+    ):
         if db_model == TrackMetadata:
             id_mapping = {row.streaming_id: row.id for row in rows}
+
             def map_id(_id):
                 return id_mapping[_id]
+
             ids = set(id_mapping.keys())
         else:
+
             def map_id(_id):
                 return _id
+
             ids = {row.id for row in rows}
 
         params = {
             'client_id': current_app.config['JAMENDO_CLIENT_ID'],
             'id[]': list(ids),
-            'limit': batch_size
+            'limit': batch_size,
         }
 
         response = http_session.get(url, params=params)
@@ -114,17 +120,21 @@ def query_jamendo_metadata(db_model, jamendo_entity, batch_size, http_session=No
         mappings = []
         for result in response_json['results']:
             result_id = int(result['id'])
-            mappings.append({
-                'id': map_id(result_id),
-                'name': result['name']
-            })
+            mappings.append(
+                {
+                    'id': map_id(result_id),
+                    'name': result['name'],
+                }
+            )
             ids.remove(result_id)
 
         for missed_id in ids:
-            mappings.append({
-                'id': map_id(missed_id),
-                'name': f'Deleted ({missed_id})'
-            })
+            mappings.append(
+                {
+                    'id': map_id(missed_id),
+                    'name': f'Deleted ({missed_id})',
+                }
+            )
 
         db.session.bulk_update_mappings(db_model, mappings)
         db.session.commit()

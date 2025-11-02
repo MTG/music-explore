@@ -10,9 +10,7 @@ def create_app(test_config=None):
     # app.wsgi_app = ProfilerMiddleware(app.wsgi_app, restrictions=[5], profile_dir='./profile')
 
     # configs
-    app.config.from_mapping(
-        SECRET_KEY='dev'
-    )
+    app.config.from_mapping(SECRET_KEY='dev')
     if test_config is None:
         app.config.from_pyfile('config.py', silent=True)
     else:
@@ -29,25 +27,33 @@ def create_app(test_config=None):
     # cache
     # TODO: lookup if we can just pass the app config and cache will ignore other options
     from .cache import cache
-    cache.init_app(app, config={
-        'CACHE_TYPE': app.config['CACHE_TYPE'],
-        'CACHE_DEFAULT_TIMEOUT': app.config['CACHE_DEFAULT_TIMEOUT']
-    })
+
+    cache.init_app(
+        app,
+        config={
+            'CACHE_TYPE': app.config['CACHE_TYPE'],
+            'CACHE_DEFAULT_TIMEOUT': app.config['CACHE_DEFAULT_TIMEOUT'],
+        },
+    )
 
     # database binding and click commands
     from . import database
+
     database.init_app(app)
 
     # processing commands
     from . import processing
+
     processing.init_app(app)
 
     # experiments
     from . import experiments
+
     experiments.init_app(app)
 
     # blueprints
     from . import models, plot, providers, similarity, views
+
     app.register_blueprint(views.bp)
     app.register_blueprint(plot.bp)
     app.register_blueprint(providers.bp)

@@ -14,8 +14,11 @@ def check(input_dir, expected_dimensions, num_files):
     if num_files is not None:
         embeddings_files = embeddings_files[:num_files]
 
-    files = [embeddings_file for embeddings_file in tqdm(embeddings_files)
-             if np.load(embeddings_file).shape[1] != expected_dimensions]
+    files = [
+        embeddings_file
+        for embeddings_file in tqdm(embeddings_files)
+        if np.load(embeddings_file).shape[1] != expected_dimensions
+    ]
     if len(files) > 0:
         print(f'Found {len(files)} files with wrong number of dimensions')
         response = input('Delete them? (y/n) ')

@@ -26,16 +26,18 @@ def get_averages(embeddings):
 
 def plot_averages(embeddings, tracks):
     avg, std = get_averages(embeddings)
-    fig = go.Figure(data=go.Scatter(
-        x=avg[:, 0],
-        y=avg[:, 1],
-        mode='markers',
-        marker={'size': std * PLOTLY_MARKER_SCALE},
-        hovertext=[track.track_metadata.to_text() for track in tracks],
-        hoverinfo='text',
-        ids=[track.full_id for track in tracks],
-        # marker_color=[track.track_metadata.artist_id for track in tracks]
-    ))
+    fig = go.Figure(
+        data=go.Scatter(
+            x=avg[:, 0],
+            y=avg[:, 1],
+            mode='markers',
+            marker={'size': std * PLOTLY_MARKER_SCALE},
+            hovertext=[track.track_metadata.to_text() for track in tracks],
+            hoverinfo='text',
+            ids=[track.full_id for track in tracks],
+            # marker_color=[track.track_metadata.artist_id for track in tracks]
+        )
+    )
     return fig
 
 
@@ -47,8 +49,7 @@ def get_trajectories(embeddings):
     trajectories = []
 
     for start, end in zip(positions[:-1], positions[1:]):
-        trajectories.append([embeddings_stacked[start:end, 0],
-                             embeddings_stacked[start:end, 1]])
+        trajectories.append([embeddings_stacked[start:end, 0], embeddings_stacked[start:end, 1]])
     return trajectories, lengths
 
 
@@ -62,18 +63,20 @@ def plot_segments(embeddings, tracks, segment_length, show_trajectories=False):
     for (x, y), length, track in zip(trajectories, lengths, tracks):
         segments = track.get_segments(segment_length)
         track_text = track.track_metadata.to_text()
-        fig.add_trace(go.Scatter(
-            x=x,
-            y=y,
-            mode=mode,
-            ids=[segment.full_id for segment in segments],
-            hovertext=[f'{track_text} ({segment.to_text()})' for segment in segments],
-            hoverinfo='text',
-            name=track_text,
-            showlegend=False,
-            line_shape='spline',
-            **args
-        ))
+        fig.add_trace(
+            go.Scatter(
+                x=x,
+                y=y,
+                mode=mode,
+                ids=[segment.full_id for segment in segments],
+                hovertext=[f'{track_text} ({segment.to_text()})' for segment in segments],
+                hoverinfo='text',
+                name=track_text,
+                showlegend=False,
+                line_shape='spline',
+                **args,
+            )
+        )
     return fig
 
 
@@ -89,14 +92,14 @@ def get_plotly_fig(plot_type, embeddings, tracks, model):
     else:
         raise ValueError(f"Invalid plot_type: {plot_type}, should be 'averages', 'trajectories' or 'segments'")
 
-    fig.update_layout(
-        margin=PLOTLY_MARGINS
-    )
+    fig.update_layout(margin=PLOTLY_MARGINS)
     return fig
 
 
-@bp.route('/plot/<string:plot_type>/<string:dataset>/<string:architecture>/<string:layer>/<int:n_tracks>/'
-          '<projection>/<int:x>/<int:y>')
+@bp.route(
+    '/plot/<string:plot_type>/<string:dataset>/<string:architecture>/<string:layer>/<int:n_tracks>/'
+    '<projection>/<int:x>/<int:y>'
+)
 def plot(plot_type, dataset, architecture, layer, n_tracks, projection, x, y):
     try:
         dynamic_projection = projection in ['tsne', 'umap']
@@ -129,7 +132,7 @@ def plot(plot_type, dataset, architecture, layer, n_tracks, projection, x, y):
             tags = model.dataset_data['tags']
             figure.update_layout(
                 xaxis_title=tags[x],
-                yaxis_title=tags[y]
+                yaxis_title=tags[y],
             )
         # TODO: add proper labels for other modes
 
@@ -156,19 +159,21 @@ def plot_segments_advanced(embeddings, tracks, segment_length, sparse_factor, hi
         #     groups[group_id] = len(groups)
 
         scatter = go.Scattergl if use_webgl else go.Scatter
-        fig.add_trace(scatter(
-            x=track_embeddings[:, 0],
-            y=track_embeddings[:, 1],
-            mode='markers',
-            ids=[segment.full_id for segment in segments],
-            hovertext=[f'{track_text} ({segment.to_text()})' for segment in segments],
-            hoverinfo='text',
-            name=track_text,
-            showlegend=False,
-            # marker={'color': scale[groups[group_id]]}
-            # marker={'color': scale[0]}
-            marker={'color': scale[1] if track.id in highlight_ids else scale[0]}
-        ))
+        fig.add_trace(
+            scatter(
+                x=track_embeddings[:, 0],
+                y=track_embeddings[:, 1],
+                mode='markers',
+                ids=[segment.full_id for segment in segments],
+                hovertext=[f'{track_text} ({segment.to_text()})' for segment in segments],
+                hoverinfo='text',
+                name=track_text,
+                showlegend=False,
+                # marker={'color': scale[groups[group_id]]}
+                # marker={'color': scale[0]}
+                marker={'color': scale[1] if track.id in highlight_ids else scale[0]},
+            )
+        )
 
     return fig
 
@@ -184,7 +189,7 @@ def get_highlight_groups(tracks_meta):
         'artist': {},
         'album': {},
         'track': {},
-        'tag': {}
+        'tag': {},
     }
     for track_meta in tracks_meta:
         _append(results['artist'], track_meta.artist.name, track_meta.id)
@@ -218,8 +223,9 @@ def plot_advanced():
         if projection == 'original':
             projection = None
 
-        model = Model(get_models().data, model_query['dataset'], model_query['architecture'],
-                      model_query['layer'], projection)
+        model = Model(
+            get_models().data, model_query['dataset'], model_query['architecture'], model_query['layer'], projection
+        )
 
         embeddings = get_embeddings_and_project(model, tracks, sparse_factor)
 
@@ -230,10 +236,10 @@ def plot_advanced():
 
     highlight_groups = get_highlight_groups(tracks_meta)
 
-    return json.dumps({
-        'plots': result_plots,
-        'highlight': highlight_groups
-    }, cls=plotly.utils.PlotlyJSONEncoder)
+    return json.dumps(
+        {'plots': result_plots, 'highlight': highlight_groups},
+        cls=plotly.utils.PlotlyJSONEncoder,
+    )
 
 
 @cache.memoize()
@@ -242,7 +248,8 @@ def get_embeddings_and_project(model, tracks, sparse_factor):
         return model.get_embeddings(tracks, sparse_factor, [0, 1])
 
     embeddings = model.with_projection('pca').get_embeddings(
-        tracks, sparse_factor, slice(current_app.config['PCA_DIMS']))
+        tracks, sparse_factor, slice(current_app.config['PCA_DIMS'])
+    )
 
     if model.projection == 'tsne':
         return reduce_tsne(embeddings)

@@ -18,7 +18,8 @@ def get_predictors(models_dir: Path, architectures: dict) -> dict:
         for dataset in metadata['datasets']:
             predictors[f'{dataset}-{architecture}'] = ess.TensorflowPredict(
                 graphFilename=str(models_dir / f'{dataset}-{architecture}.pb'),
-                inputs=['model/Placeholder'], outputs=output_layers,
+                inputs=['model/Placeholder'],
+                outputs=output_layers,
             )
 
     return predictors
