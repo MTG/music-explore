@@ -1,10 +1,10 @@
 [project]
 name = "music-explore"
-version = "1.0.0"
-description = "Add your description here"
-authors = [{ name = "Philip Tovstogan", email = "philip.tovstogan@upf.edu" }]
+version = "0.4.0"
+description = "Visualization of embedding spaces for exploration and re-discovery of music collections"
+authors = [{ name = "Philip Tovstogan", email = "phil.tovstogan@gmail.com" }]
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
     "annoy>=1.17.3",
     "click>=8.3.0",
@@ -13,11 +13,11 @@ dependencies = [
     "flask-sqlalchemy>=3.0.5",
     "numpy>=2.3.4",
     "pandas>=2.3.3",
-    "plotly<6",
+    "plotly>=5.24.1<6",  # v6 breaks custom JS code
     "pyyaml>=6.0.3",
     "requests>=2.32.5",
     "scikit-learn>=1.7.2",
-    "sqlalchemy<2",
+    "sqlalchemy<2",  # TODO: upgrade to v2
     "tqdm>=4.67.1",
     "umap-learn>=0.5.9.post2",
     "werkzeug>=3.1.3",
@@ -29,6 +29,9 @@ dev = [
     "ruff>=0.14.3",
 ]
 processing = ["essentia-tensorflow>=2.1b6.dev1389", "tinytag>=2.1.2"]
+
+[tool.uv.dependency-groups]
+processing = {requires-python = "<=3.13"}
 
 [tool.ruff]
 line-length = 120

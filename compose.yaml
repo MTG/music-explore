@@ -3,14 +3,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: flask run --host=0.0.0.0 --port=8080
     ports:
       - "${PORT:-8080}:8080"
     volumes:
-      - .:/app
-      - /app/data
-      - ./data:/data
-      - ./config-docker.py:/app/instance/config.py
+      - /path/to/data:/data  # change your path here
+      - /path/to/audio:/app/static/audio  # change if you are serving audio locally
     environment:
-      JAMENDO_CLIENT_ID: ${JAMENDO_CLIENT_ID:-}
+      JAMENDO_CLIENT_ID: ${JAMENDO_CLIENT_ID:-}  # change if you are using Jamendo API
     restart: unless-stopped
