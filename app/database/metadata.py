@@ -16,10 +16,12 @@ class NameMixin(CommonMixin):
         return (self.name is None, self.name) < (other.name is None, other.name)
 
 
-track_metadata_tag_table = Table('track_metadata_tag', db.Model.metadata,
-                                 Column('tag_id', Integer, ForeignKey('tag.id')),
-                                 Column('track_id', Integer, ForeignKey('track_metadata.id'))
-                                 )
+track_metadata_tag_table = Table(
+    'track_metadata_tag',
+    db.Model.metadata,
+    Column('tag_id', Integer, ForeignKey('tag.id')),
+    Column('track_id', Integer, ForeignKey('track_metadata.id')),
+)
 
 
 class TrackMetadata(NameMixin, db.Model):
@@ -34,8 +36,9 @@ class TrackMetadata(NameMixin, db.Model):
     album_id: Mapped[int | None] = mapped_column(ForeignKey('album.id'))
     album: Mapped['Album | None'] = relationship('Album', back_populates='tracks_metadata')
 
-    tags: Mapped[list['Tag']] = relationship('Tag', secondary=track_metadata_tag_table,
-                                             back_populates='tracks_metadata')
+    tags: Mapped[list['Tag']] = relationship(
+        'Tag', secondary=track_metadata_tag_table, back_populates='tracks_metadata'
+    )
 
     def __repr__(self):
         return f'TrackMetadata(id={self.id}, streaming_id={self.streaming_id})'

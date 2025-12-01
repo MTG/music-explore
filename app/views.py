@@ -11,21 +11,24 @@ bp = Blueprint('views', __name__)
 @bp.route('/playground')
 def playground():
     models = get_models()
-    return render_template('playground.html',
-                           datasets=models.get_triplets('datasets'),
-                           architectures=models.get_triplets('architectures'),
-                           tags=models.get_dict('datasets', 'tags'),
-                           layers=models.get_triplets('layers'),
-                           projections=models.get_triplets('projections')
-                           )
+    return render_template(
+        'playground.html',
+        datasets=models.get_triplets('datasets'),
+        architectures=models.get_triplets('architectures'),
+        tags=models.get_dict('datasets', 'tags'),
+        layers=models.get_triplets('layers'),
+        projections=models.get_triplets('projections'),
+    )
 
 
 @bp.route('/compare')
 def compare():
-    return render_template('compare.html',
-                           data=get_models().data,
-                           artists=sorted(Artist.get_all()),
-                           tags=sorted(Tag.get_all()))
+    return render_template(
+        'compare.html',
+        data=get_models().data,
+        artists=sorted(Artist.get_all()),
+        tags=sorted(Tag.get_all()),
+    )
 
 
 @bp.route('/similarity')

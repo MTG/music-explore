@@ -14,3 +14,5 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: astral-sh/ruff-action@v3
+      - run: ruff check
+      - run: ruff format --check

@@ -35,7 +35,7 @@ DB_COMMIT_BATCH_SIZE = 1000
 AUDIO_PROVIDER = 'jamendo'  # can be 'jamendo' for mtg-jamendo-dataset, or 'local' for in-house collection
 
 # Jamendo - ignore if not using Jamendo
-JAMENDO_CLIENT_ID = os.environ.get("JAMENDO_CLIENT_ID")
+JAMENDO_CLIENT_ID = os.environ.get('JAMENDO_CLIENT_ID')
 JAMENDO_BATCH_SIZE = 100  # number of tracks to include in one API call to Jamendo when populating the metadata
 
 # Experiments results

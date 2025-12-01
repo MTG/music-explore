@@ -23,6 +23,7 @@ class CommonMixin:
     """
     Has primary key id, and methods get_by_id and get_all
     """
+
     id: Mapped[int] = mapped_column(primary_key=True)
 
     @classmethod
@@ -60,7 +61,9 @@ class Track(CommonMixin, db.Model):
     segmentations: Mapped[list['Segmentation']] = relationship('Segmentation', back_populates='track')
     path: Mapped[str] = mapped_column(String, index=True, unique=True)
 
-    track_metadata: Mapped['TrackMetadata | None'] = relationship('TrackMetadata', uselist=False, back_populates='track')  # noqa: F821
+    track_metadata: Mapped['TrackMetadata | None'] = relationship(  # noqa: F821
+        'TrackMetadata', uselist=False, back_populates='track'
+    )
 
     def __repr__(self):
         return f'Track(id={self.id}, path={self.path})'

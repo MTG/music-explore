@@ -10,7 +10,7 @@ bp = Blueprint('providers', __name__, url_prefix='/audio')
 
 
 def get_jamendo_url(jamendo_id):
-    client_id = current_app.config["JAMENDO_CLIENT_ID"]
+    client_id = current_app.config['JAMENDO_CLIENT_ID']
     return f'https://mp3l.jamendo.com/?trackid={jamendo_id}&format=mp31&from=app-{client_id}'
 
 
@@ -38,7 +38,7 @@ def get_track_url_api(track_id):
     return {
         'url': get_track_url(track),
         'text': track.track_metadata.to_text(),
-        'tags': track.track_metadata.tags_to_text()
+        'tags': track.track_metadata.tags_to_text(),
     }
 
 
@@ -49,7 +49,7 @@ def get_segment_url(segment_length, segment_id):
     return {
         'url': f'{track_url}{segment.get_url_suffix()}',
         'text': segment.track.track_metadata.to_text(),
-        'tags': segment.track.track_metadata.tags_to_text()
+        'tags': segment.track.track_metadata.tags_to_text(),
     }
 
 

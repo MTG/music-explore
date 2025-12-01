@@ -45,16 +45,26 @@ def index_all_audio(wildcards):
 
 @click.command('index-audio')
 @click.argument('input_dir', type=click.Path(exists=True))
-@click.option('-w', '--wildcards', default=['*.mp3', '*.flac'], multiple=True,
-              help='wildcards that describes the audio files (e.g. *.mp3)')
+@click.option(
+    '-w',
+    '--wildcards',
+    default=['*.mp3', '*.flac'],
+    multiple=True,
+    help='wildcards that describes the audio files (e.g. *.mp3)',
+)
 @with_appcontext
 def index_audio_command(input_dir, wildcards: tuple):
     index_audio(input_dir, wildcards)
 
 
 @click.command('index-all-audio')
-@click.option('-w', '--wildcards', default=['*.mp3', '*.flac'], multiple=True,
-              help='wildcards that describes the audio files (e.g. *.mp3)')
+@click.option(
+    '-w',
+    '--wildcards',
+    default=['*.mp3', '*.flac'],
+    multiple=True,
+    help='wildcards that describes the audio files (e.g. *.mp3)',
+)
 @with_appcontext
 def index_all_audio_command(wildcards):
     index_all_audio(wildcards)

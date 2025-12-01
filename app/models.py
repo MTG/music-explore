@@ -73,8 +73,9 @@ class Model:
         self.get_annoy_index()
         embeddings = []
         for track in tracks:
-            track_embeddings = [self.index.get_item_vector(segment.id) for segment in
-                                track.get_segments(self.length, sparse_factor)]
+            track_embeddings = [
+                self.index.get_item_vector(segment.id) for segment in track.get_segments(self.length, sparse_factor)
+            ]
             track_embeddings = np.array(track_embeddings)
             if dimensions is not None:
                 track_embeddings = track_embeddings[:, dimensions]
@@ -102,6 +103,7 @@ class Model:
 
 class Models:
     """Wrapper for the info from models file: detailed description of models, datasets, etc."""
+
     def __init__(self, data: dict):
         self.data = data
 
@@ -135,8 +137,7 @@ class Models:
         yield from self.get_combinations()
         yield from self.get_all_offline_projections()
 
-    def get_comparable_models(self, length):
-        ...
+    def get_comparable_models(self, length): ...
 
 
 def get_models():

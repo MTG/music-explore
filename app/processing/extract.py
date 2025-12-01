@@ -30,8 +30,12 @@ def extract(input_dir, output_dir, algorithm, model_file, layer, accumulate=Fals
         embeddings_file = output_dir / track.get_embeddings_filename()
         if force or not embeddings_file.exists():
             audio = ess.MonoLoader(filename=str(audio_file), sampleRate=SAMPLE_RATE)()
-            embeddings = algorithm(graphFilename=str(model_file), patchHopSize=0, output=layer,
-                                   accumulate=accumulate)(audio)
+            embeddings = algorithm(
+                graphFilename=str(model_file),
+                patchHopSize=0,
+                output=layer,
+                accumulate=accumulate,
+            )(audio)
             if not dry:
                 embeddings_file.parent.mkdir(parents=True, exist_ok=True)
                 np.save(embeddings_file, embeddings.astype(np.float16))
@@ -51,6 +55,7 @@ def _already_extracted(track, models, data_root):
 def extract_all(models_dir, dry=False, force=False):
     # TODO: incorporate dry properly
     from app.processing.essentia_wrappers import get_embeddings, get_melspecs, get_predictors
+
     app = current_app
     audio_dir = Path(app.config['AUDIO_DIR'])
     data_root_dir = Path(app.config['DATA_DIR'])
@@ -92,6 +97,7 @@ def extract_all(models_dir, dry=False, force=False):
 
 
 # Entry points
+
 
 @click.command('extract')
 @click.argument('input_dir', type=click.Path(exists=True))
