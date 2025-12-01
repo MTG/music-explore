@@ -9,9 +9,8 @@ import numpy as np
 from flask import current_app
 from flask.cli import with_appcontext
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, ForeignKey, Integer, String, and_
-from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
+from sqlalchemy import ForeignKey, Integer, String, and_, func, select
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 db = SQLAlchemy()
 
@@ -24,26 +23,31 @@ class CommonMixin:
     """
     Has primary key id, and methods get_by_id and get_all
     """
-    id = Column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
 
     @classmethod
     def get_by_id(cls, _id):
-        return db.session.query(cls).filter(cls.id == _id).first()
+        if _id is None:
+            return None
+        return db.session.get(cls, _id)
 
     @classmethod
     def get_by_ids(cls, _ids: list):
-        return db.session.query(cls).filter(cls.id.in_(_ids))
+        if not _ids:
+            return []
+        stmt = select(cls).where(cls.id.in_(_ids))
+        return list(db.session.execute(stmt).scalars())
 
     @classmethod
     def get_all(cls, limit=None, random=False):
-        query = db.session.query(cls)
+        stmt = select(cls)
 
         if random:
-            query = query.order_by(func.random())
+            stmt = stmt.order_by(func.random())
 
         if limit is not None:
-            query = query.limit(limit)
-        return query.all()  # mostly used with tqdm, so it's nice to have len from .all()
+            stmt = stmt.limit(limit)
+        return list(db.session.execute(stmt).scalars())  # mostly used with tqdm, so it's nice to have len from .all()
 
     def delete(self):
         db.session.delete(self)
@@ -53,10 +57,10 @@ class CommonMixin:
 class Track(CommonMixin, db.Model):
     __tablename__ = 'track'
 
-    segmentations = relationship('Segmentation', back_populates='track')
-    path = Column(String, index=True, unique=True)
+    segmentations: Mapped[list['Segmentation']] = relationship('Segmentation', back_populates='track')
+    path: Mapped[str] = mapped_column(String, index=True, unique=True)
 
-    track_metadata = relationship('TrackMetadata', uselist=False, back_populates='track')
+    track_metadata: Mapped['TrackMetadata | None'] = relationship('TrackMetadata', uselist=False, back_populates='track')  # noqa: F821
 
     def __repr__(self):
         return f'Track(id={self.id}, path={self.path})'
@@ -67,7 +71,8 @@ class Track(CommonMixin, db.Model):
         return self._get_segmentation(length) is not None
 
     def _get_segmentation(self, length):
-        return db.session.query(Segmentation).filter_by(id=self.id, length=length).first()
+        stmt = select(Segmentation).where(Segmentation.id == self.id, Segmentation.length == length)
+        return db.session.execute(stmt).scalar_one_or_none()
 
     def get_segments(self, length, sparse_factor=1):
         return self._get_segmentation(length).get_segments(sparse_factor)
@@ -91,7 +96,8 @@ class Track(CommonMixin, db.Model):
 
     @staticmethod
     def get_by_path(path):
-        return db.session.query(Track).filter(Track.path == path).first()
+        stmt = select(Track).where(Track.path == path)
+        return db.session.execute(stmt).scalar_one_or_none()
 
     @property
     def full_id(self):
@@ -145,13 +151,13 @@ class Segment:
 
 class Segmentation(CommonMixin, db.Model):
     __tablename__ = 'segmentation'
-    id = Column(Integer, ForeignKey('track.id'), primary_key=True)
-    track = relationship('Track', back_populates='segmentations')
-    length = Column(Integer, primary_key=True)  # in ms
+    id: Mapped[int] = mapped_column(ForeignKey('track.id'), primary_key=True)
+    track: Mapped['Track'] = relationship('Track', back_populates='segmentations')
+    length: Mapped[int] = mapped_column(Integer, primary_key=True)  # in ms
 
     # segment_ids
-    start_id = Column(Integer, index=True)
-    stop_id = Column(Integer, index=True)
+    start_id: Mapped[int] = mapped_column(Integer, index=True)
+    stop_id: Mapped[int] = mapped_column(Integer, index=True)
 
     def __repr__(self):
         return f'<Segmentation({self.start_id}:{self.stop_id}, track={self.id}, length={self.length}>'
@@ -164,14 +170,20 @@ class Segmentation(CommonMixin, db.Model):
 
     @staticmethod
     def get_by_segment_id(segment_length: int, segment_id: int):
-        return db.session.query(Segmentation).filter(and_(Segmentation.length == segment_length,
-                                                          Segmentation.start_id <= segment_id,
-                                                          Segmentation.stop_id > segment_id)).first()
+        stmt = select(Segmentation).where(
+            and_(
+                Segmentation.length == segment_length,
+                Segmentation.start_id <= segment_id,
+                Segmentation.stop_id > segment_id,
+            )
+        )
+        return db.session.execute(stmt).scalar_one_or_none()
 
     @staticmethod
     def get_total_segments(segment_length):
-        return db.session.query(func.max(Segmentation.stop_id)).filter(
-            Segmentation.length == segment_length).first()[0]
+        stmt = select(func.max(Segmentation.stop_id)).where(Segmentation.length == segment_length)
+        result = db.session.execute(stmt).scalar_one_or_none()
+        return result or 0
 
     def get_slice(self, sparse_factor) -> slice:
         return slice(self.start_id, self.stop_id, sparse_factor)

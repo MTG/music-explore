@@ -5,6 +5,7 @@ import requests
 from flask import current_app
 from flask.cli import with_appcontext
 from requests.adapters import HTTPAdapter
+from sqlalchemy import select
 from tqdm import tqdm
 from urllib3.util.retry import Retry
 
@@ -33,7 +34,7 @@ def load_jamendo_metadata(input_file):
             path = row[3]
             raw_tags = row[5:]
 
-            track = db.session.query(Track).filter(Track.path == path).first()
+            track = db.session.execute(select(Track).where(Track.path == path)).scalar_one_or_none()
             if track is not None:
                 if TrackMetadata.get_by_id(track.id) is None:
                     artist = Artist.get_by_id(artist_id)
@@ -44,9 +45,9 @@ def load_jamendo_metadata(input_file):
                     album = Album.get_by_id(album_id)
                     if album is None:
                         album = Album(id=album_id, artist=artist)
-                        db.session.add(artist)
+                        db.session.add(album)
 
-                    track_metadata = TrackMetadata(track=track, streaming_id=str(track_jamendo_id),
+                    track_metadata = TrackMetadata(track=track, streaming_id=track_jamendo_id,
                                                    album=album, artist=artist)
                     db.session.add(track_metadata)
 
@@ -82,14 +83,12 @@ def query_jamendo_metadata(db_model, jamendo_entity, batch_size, http_session=No
         http_session = get_http_session()
 
     url = f'https://api.jamendo.com/v3.0/{jamendo_entity}/'
-    # we need '==' instead of 'is' for None comparison in sqlalchemy
-    noname_rows = db.session.query(db_model).filter(db_model.name == None).all()  # noqa: E711
+    noname_rows = db.session.scalars(select(db_model).where(db_model.name.is_(None))).all()
     for rows in tqdm([noname_rows[pos:pos + batch_size] for pos in range(0, len(noname_rows), batch_size)],
                      desc=jamendo_entity):
 
         if db_model == TrackMetadata:
             id_mapping = {row.streaming_id: row.id for row in rows}
-
             def map_id(_id):
                 return id_mapping[_id]
             ids = set(id_mapping.keys())
@@ -114,11 +113,12 @@ def query_jamendo_metadata(db_model, jamendo_entity, batch_size, http_session=No
 
         mappings = []
         for result in response_json['results']:
+            result_id = int(result['id'])
             mappings.append({
-                'id': map_id(result['id']),
+                'id': map_id(result_id),
                 'name': result['name']
             })
-            ids.remove(result['id'])
+            ids.remove(result_id)
 
         for missed_id in ids:
             mappings.append({
