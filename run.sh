@@ -7,11 +7,7 @@ echo "- set the variables ROOT_DIR and AUDIO_DIR as absolute paths"
 echo "- created the soft symlink app/static/audio pointing to your audio"
 
 echo 'Setting up Python environment...'
-python3.7 -m venv venv
-source venv/bin/activate
-pip install --upgrade pip setuptools wheel
-pip install -r requirements.txt
-pip install essentia-tensorflow tinytag
+uv sync --group processing
 
 echo 'Downloading models...'
 mkdir -p essentia-tf-models
@@ -24,12 +20,12 @@ wget https://essentia.upf.edu/models/feature-extractors/vggish/audioset-vggish-3
 cd ..
 
 echo 'Processing the music collection'
-flask init-db
-flask index-all-audio
-flask extract-all essentia-tf-models
-flask reduce-all
-flask index-all-embeddings
-flask aggregate-all
-flask load-id3-metadata
+uv run flask init-db
+uv run flask index-all-audio
+uv run --group processing flask extract-all essentia-tf-models
+uv run flask reduce-all
+uv run flask index-all-embeddings
+uv run flask aggregate-all
+uv run --group processing flask load-id3-metadata
 
-echo "Done! You can run the app now with 'source venv/bin/activate; flask run'"
+echo "Done! You can run the app now with 'uv run flask run'"

@@ -4,7 +4,8 @@
 
 ### Requirements
 
-Python 3.7+
+[UV](https://docs.astral.sh/uv/getting-started/installation/)
+Tested with Python 3.11+
 
 ### Config
 
@@ -34,27 +35,16 @@ from Jamendo servers by registering an app in [Jamendo Dev portal](https://devpo
 ### Environment
 
 ```shell
-python3.x -m venv venv
-source venv/bin/activate
-pip install --upgrade pip setuptools wheel
-pip install -r requirements.txt
+uv sync  # add --group processing and/or dev if you need
 ```
 
 If you get an error while installing `annoy`, make sure that you have `python3.x-dev` installed
 
-You can use python 3.8+ with no problems for running the app, but you will need separate environment for audio
-processing, as, there are no `essentia-tensorflow` wheels for Python 3.8 yet.
-However, it is a good idea to have separate environments for processing and running anyway, as there are some packages
-that are only used for processing.
-
-Additional processing libraries:
-* `tensorflow-essentia`: extracting embeddings (has no wheels for Python 3.8 yet, 380MB):
-```
-pip install essentia-tensorflow
-```
+Additional processing libraries (`processing` dependency group):
+* `tensorflow-essentia`: extracting embeddings (380MB):
 * `tinytag`: install it if you use personal music collection, it parses ID3 tags
 ```
-pip install essentia-tensorflow tinytag
+uv sync --group processing
 ```
 
 ### Download essentia-tensorflow models
@@ -88,24 +78,24 @@ To take full advantage of this application, make sure your audio is in the forma
 [this gist](https://gist.github.com/philtgun/304d70727d9bda5a0aee7a9e92ddbe69)
 
 ```shell
-flask init-db  # creates tables in db
-flask index-all-audio  # creates list of audio tracks in db
-flask extract-all essentia-tf-models  # extracts embeddings
-flask reduce-all  # computes the projections
-flask index-all-embeddings  # indexes everything in database
-flask aggregate-all # aggregates embeddings in single .npy file per model (to get rid of many small files)
+uv run flask init-db  # creates tables in db
+uv run flask index-all-audio  # creates list of audio tracks in db
+uv run flask --group processing extract-all essentia-tf-models  # extracts embeddings
+uv run flask reduce-all  # computes the projections
+uv run flask index-all-embeddings  # indexes everything in database
+uv run flask aggregate-all # aggregates embeddings in single .npy file per model (to get rid of many small files)
 ```
 
 #### Adding local metadata
 ```shell
-flask load-id3-metadata
+uv run flask --group processing load-id3-metadata
 ```
 
 #### Adding Jamendo metadata
 Clone or download metadata from [mtg-jamendo-dataset]((https://github.com/MTG/mtg-jamendo-dataset))
 ```shell
-flask load-jamendo-metadata path/to/mtg-jamendo-dataset/data/raw_30s_cleantags.tsv
-flask query-jamendo-metadata
+uv run flask load-jamendo-metadata path/to/mtg-jamendo-dataset/data/raw_30s_cleantags.tsv
+uv run flask query-jamendo-metadata
 ```
 
 ### Creating playlists
@@ -113,8 +103,8 @@ If you are using nix-based system, the playlist creation should work out of the 
 If you want to create playlists for later use, change `PLAYLIST_FOR_OFFLINE=True` in `config.py`.
 
 If you are using Windows Subsystem for Linux (WSL) and would like to use playlists in Windows, apart from setting
-`PLAYLIST_FOR_OFFLINE=True`, you should also set `PLAYLIST_USE_WINDOWS_PATH = True` and the path
-`PLAYLIST_AUDIO_DIR = 'C:\\path\\to\\audio'` that is the same one that you created symbolic link before, but as Windows
+`PLAYLIST_FOR_OFFLINE=True`, you should also set `PLAYLIST_USE_WINDOWS_PATH=True` and the path
+`PLAYLIST_AUDIO_DIR='C:\\path\\to\\audio'` that is the same one that you created symbolic link before, but as Windows
 path.
 
 Note: none of these options have any effect if the `AUDIO_PROVIDER='jamendo'`.
@@ -122,7 +112,7 @@ Note: none of these options have any effect if the `AUDIO_PROVIDER='jamendo'`.
 ### Running the app
 
 ```shell
-FLASK_ENV=development flask run
+FLASK_ENV=development uv run flask run
 ```
 
 ## Deploying with Docker (to be updated)
@@ -138,13 +128,18 @@ docker build -t music-explore .
 docker run -p 8080:80 -v /path/to/data:/data -v /path/to/audio:/app/static/audio music-explore  # run with local audio
 docker run -p 8080:80 -v /path/to/data:/data --env JAMENDO_CLIENT_ID=XXXXXXXX music-explore  # run with Jamendo API
 ```
+Or you can use the `compose.yaml` as a base.
 
 ## Development
 
 ```
-pip install pre-commit
-pre-commit install
+uv sync --dev
+uv run prek install
 ```
+
+## Experiments
+
+Some experiment commands are not runnable, particularly from `hubness.py` depend on [scikit-hubness](https://github.com/VarIr/scikit-hubness) package, that is difficult to install.
 
 ## License
 

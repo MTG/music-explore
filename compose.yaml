@@ -1,0 +1,13 @@
+services:
+  music-explore:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT:-8080}:8080"
+    volumes:
+      - /path/to/data:/data  # change your path here
+      - /path/to/audio:/app/static/audio  # change if you are serving audio locally
+    environment:
+      JAMENDO_CLIENT_ID: ${JAMENDO_CLIENT_ID:-}  # change if you are using Jamendo API
+    restart: unless-stopped

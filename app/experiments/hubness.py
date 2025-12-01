@@ -19,7 +19,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
 def measure_hubness(n_tracks, output_file, metric, projection, dimensions, n_jobs, random):
-    from skhubness import Hubness
+    from skhubness import Hubness  # ty: ignore[unresolved-import]
     tracks = Track.get_all(limit=n_tracks, random=random)
 
     models = get_models()

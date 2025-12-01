@@ -27,7 +27,7 @@ def generate_pairs(output_dir: Path, n_queries: int, n_candidates: int, segment_
         suffixes.append(row)
 
     output_dir.mkdir(exist_ok=True, parents=True)
-    np.save(str(output_dir / 'ids.npy'))
+    np.save(ids, str(output_dir / 'ids.npy'))
     pd.DataFrame(suffixes).to_csv(str(output_dir / 'suffixes.csv'), header=False, index=False)
 
 

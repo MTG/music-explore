@@ -5,8 +5,8 @@ import requests
 from flask import current_app
 from flask.cli import with_appcontext
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
 from tqdm import tqdm
+from urllib3.util.retry import Retry
 
 from app.database.base import Track, db, needs_committing
 from app.database.metadata import Album, Artist, Tag, TrackMetadata
